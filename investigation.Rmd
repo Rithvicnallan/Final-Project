@@ -27,10 +27,17 @@ library(readr)
 ```{r load-data}
 # load your data 
 Adjudication <- read_csv("data/AdjudicationsQ12023.csv")
-Punishments <- read_csv("data/PunishmentsQ12023.csv")
+Punishments <- read_csv("data/PunishmentsQ12023(edited).csv")
 Caseload <- read_csv("data/caseloadQ12023.csv")
 Starts <- read_csv("data/startsQ12023.csv")
 Terminations <- read_csv("data/terminationsQ12023.csv")
 ```
 
+```{r}
+# summarizing establishments
+```
+
+```{r}
+# summarizing order type
+```
 
