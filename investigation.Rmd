@@ -39,5 +39,11 @@ Terminations <- read_csv("data/terminationsQ12023.csv")
 
 ```{r}
 # summarizing order type
-```
+```Terminations %>%
+  select(`ORDER TYPE`) %>%
+  mutate(special_group = case_when(
+    `ORDER TYPE`== "Community_Order" ~ "Community_Order",
+    `ORDER TYPE`== "Suspended_Sentence_Order" ~ "Suspended_Sentence_Order"))
+group_by(ORDER TYPE) %>%
+  summarise(count = n())
 
