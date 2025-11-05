@@ -40,6 +40,33 @@ Terminations <- read_csv("data/terminationsQ12023.csv")
 ```
 
 ```{r}
-# summarizing order type
+# cleaning of Terminations
+Terminations %>%
+  arrange(`SEX`) %>%
+  summarise(
 ```
 
+```{r}
+Terminations %>%
+  select(`SEX`) %>%
+  mutate(sum_gender = case_when(
+    `SEX` == "Female" ~ "Female",
+    `SEX` == "Male" ~ "Male",
+    TRUE ~ "OTHER")) %>%
+  group_by(sum_gender) %>%
+  summarise(
+    count = n())
+```
+
+```{r}
+# summarizing order type
+Terminations %>%
+  select(`ORDER TYPE`) %>%
+  mutate(special_group = case_when(
+    `ORDER TYPE` == "Community order" ~ "Community order",
+    `ORDER TYPE` == "Suspended sentence order" ~ "Suspended sentence order",
+    TRUE ~ "OTHER")) %>%
+  group_by(special_group) %>%
+  summarise(
+    count = n())
+```
