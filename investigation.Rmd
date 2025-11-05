@@ -17,6 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r load-lib, message = FALSE}
 library(tidyverse)
 library(readr)
+library(janitor)
 # Add any other libraries here
 
 
@@ -27,7 +28,7 @@ library(readr)
 ```{r load-data}
 # load your data 
 Adjudication <- read_csv("data/AdjudicationsQ12023.csv")
-Punishments <- read_csv("data/PunishmentsQ12023(edited).csv")
+Punishments <- read_csv("data/PunishmentsQ12023(edited).csv") %>% clean_names()
 Caseload <- read_csv("data/caseloadQ12023.csv")
 Starts <- read_csv("data/startsQ12023.csv")
 Terminations <- read_csv("data/terminationsQ12023.csv")
@@ -35,6 +36,7 @@ Terminations <- read_csv("data/terminationsQ12023.csv")
 
 ```{r}
 # summarizing establishments
+
 ```
 
 ```{r}
