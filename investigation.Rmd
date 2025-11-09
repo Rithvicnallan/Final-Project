@@ -27,11 +27,10 @@ library(janitor)
 
 ```{r load-data}
 # load your data 
-Adjudication <- read_csv("data/AdjudicationsQ12023.csv")
-Punishments <- read_csv("data/PunishmentsQ12023(edited).csv") %>% clean_names()
-Caseload <- read_csv("data/caseloadQ12023.csv")
-Starts <- read_csv("data/startsQ12023.csv")
-Terminations <- read_csv("data/terminationsQ12023.csv")
+sample_submission <- read_csv("sample_submission.csv")
+test <- read_csv("test.csv")
+train <- read_csv("train.csv")
+data <- read_delim("data_description.txt", delim = " ")
 ```
 
 ```{r}
