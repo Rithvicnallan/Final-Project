@@ -30,7 +30,7 @@ library(janitor)
 sample_submission <- read_csv("sample_submission.csv")
 test <- read_csv("test.csv")
 train <- read_csv("train.csv")
-data <- read_delim("data_description.txt", delim = " ")
+
 ```
 
 ```{r}
