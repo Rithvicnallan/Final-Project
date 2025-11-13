@@ -27,22 +27,55 @@ library(janitor)
 
 ```{r load-data}
 # load your data 
-sample_submission <- read_csv("sample_submission.csv")
-test <- read_csv("test.csv")
-train <- read_csv("train.csv")
+sample_submission <- read_csv("data/sample_submission.csv")
+test <- read_csv("data/test.csv")
+train <- read_csv("data/train.csv")
+```
+
+```{r cleaning}
+# Cleaning sample_submission
+glimpse(sample_submission)
+sum(is.na(sample_submission))
+#sample_submission is clean by default
+```
+
+```{r cleaning}
+# Cleaning train
+clean_names(train)
+train <- train %>%
+  mutate(MSSubClass_fctr = as.factor(MSSubClass),
+         OverallQual_fctr = as.factor(OverallQual),
+         OverallCond_fctr = as.factor(OverallCond),
+         ExterQual_fctr = as.factor(ExterQual),
+         ExterCond_fctr = as.factor(ExterCond),
+         BsmtQual_fctr = as.factor(BsmtQual),
+         BsmtCond_fctr = as.factor(BsmtCond),
+         BsmtExposure_fctr = as.factor(BsmtExposure),
+         BsmtFinType1_fctr = as.factor(BsmtFinType1),
+         BsmtFinType2_fctr = as.factor(BsmtFinType2),
+         HeatingQC_fctr = as.factor(HeatingQC),
+         KitchenQual_fctr = as.factor(KitchenQual),
+         Functional_fctr = as.factor(Functional),
+         FireplaceQu_fctr = as.factor(FireplaceQu),
+         GarageQual_fctr = as.factor(GarageQual),
+         GarageFinish_fctr = as.factor(GarageFinish),
+         GarageCond_fctr = as.factor(GarageCond),
+         PoolQC_fctr = as.factor(PoolQC),
+         Fence_fctr = as.factor(Fence))
+glimpse(train)
+
+
+  
+
+
 
 ```
 
 ```{r}
-# summarizing establishments
-
-```
-
-```{r}
-# cleaning of Terminations
-Terminations %>%
-  arrange(`SEX`) %>%
-  summarise(
+sample_submission %>%
+  ggplot(aes(
+    x = SalePrice)) +
+  geom_density()
 ```
 
 ```{r}
