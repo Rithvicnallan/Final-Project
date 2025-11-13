@@ -101,15 +101,27 @@ test %>%
 
 
 ```{r}
-sample_submission %>%
-  ggplot(aes(
-    x = SalePrice)) +
-  geom_density()
+
 ```
 
 ```{r}
-
+test_price <- test %>%
+  full_join(sample_submission, by = 'Id')
+test_price %>%
+  summarise(avg_price = mean(SalePrice, na.rm = TRUE),
+            med_price = median(SalePrice, na.rm = TRUE),
+            q25_price = quantile(SalePrice, probs = 0.25, na.rm = TRUE),
+            q75_price = quantile(SalePrice, probs = 0.75, na.rm = TRUE),
+            sd_price = sd(SalePrice, na.rm = TRUE),
+            min_price = min(SalePrice, na.rm = TRUE),
+            max_price = max(SalePrice, na.rm = TRUE))
+test_price %>%
+  ggplot(aes(
+    x = `SalePrice`)) +
+  geom_histogram(bins = 20)
 ```
+
+# We have worked out that the mean price and median price is the same to 3 significance figure accuracy, this suggests that the distribution of sales price for housing could be approximated to a normal distribution and almost symmetrical, implying that there are no outliers in our data.
 
 ```{r}
 # summarizing order type
