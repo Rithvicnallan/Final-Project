@@ -101,10 +101,6 @@ test %>%
 
 
 ```{r}
-
-```
-
-```{r}
 test_price <- test %>%
   full_join(sample_submission, by = 'Id')
 test_price %>%
@@ -118,12 +114,23 @@ test_price %>%
 test_price %>%
   ggplot(aes(
     x = `SalePrice`)) +
-  geom_histogram(bins = 20)
+  geom_histogram(aes(y = after_stat(density)), bins = 20) +
+  stat_function(fun = dnorm,
+                args = list(mean = 179183.9, sd = 16518.3),
+                color = "red",
+                linewidth = 1)
 ```
 
 # We have worked out that the mean price and median price is the same to 3 significance figure accuracy, this suggests that the distribution of sales price for housing could be approximated to a normal distribution and almost symmetrical, implying that there are no outliers in our data.
 
 ```{r}
-# summarizing order type
-
+# investigating correlation between SalePrice and LotArea
+test_price %>%
+  ggplot(aes(
+    x = LotArea,
+    y = SalePrice)) +
+  geom_point(color = "red") +
+  geom_smooth(method = lm)
 ```
+
+# From our scatter point plot when adjusted to standard error, we can see that there is a correlation visually between SalePrices and LotArea, predicting a possible dependency. The standard error increases as we approach greater values in LotArea and SalePrices, which suggests possible outliers, but also due to the lack of data.
