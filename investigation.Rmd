@@ -103,6 +103,7 @@ test %>%
 ```{r}
 test_price <- test %>%
   full_join(sample_submission, by = 'Id')
+
 test_price %>%
   summarise(avg_price = mean(SalePrice, na.rm = TRUE),
             med_price = median(SalePrice, na.rm = TRUE),
@@ -111,6 +112,7 @@ test_price %>%
             sd_price = sd(SalePrice, na.rm = TRUE),
             min_price = min(SalePrice, na.rm = TRUE),
             max_price = max(SalePrice, na.rm = TRUE))
+
 test_price %>%
   ggplot(aes(
     x = `SalePrice`)) +
@@ -134,3 +136,26 @@ test_price %>%
 ```
 
 # From our scatter point plot when adjusted to standard error, we can see that there is a correlation visually between SalePrices and LotArea, predicting a possible dependency. The standard error increases as we approach greater values in LotArea and SalePrices, which suggests possible outliers, but also due to the lack of data.
+
+```{r}
+
+test_price <- test_price %>%
+  mutate(
+    # log-transform target
+    log_saleprice = log(SalePrice),
+  )
+
+# Original SalePrice
+ggplot(train, aes(x = SalePrice)) +
+  geom_histogram(bins = 50) +
+  labs(title = "Distribution of SalePrice")
+
+# Log-transformed SalePrice
+ggplot(test_price, aes(x = log_saleprice)) +
+  geom_histogram(bins = 50) +
+  labs(title = "Distribution of log(SalePrice)")
+
+
+```
+
+#The raw SalePrice distribution was highly right-skewed. We applied a natural log transformation, which produced a more symmetric distribution and better supported linear model assumptions.
