@@ -159,3 +159,59 @@ ggplot(test_price, aes(x = log_saleprice)) +
 ```
 
 #The raw SalePrice distribution was highly right-skewed. We applied a natural log transformation, which produced a more symmetric distribution and better supported linear model assumptions.
+
+
+```{r}
+ggplot(test_price, aes(x = GrLivArea, y = log_saleprice)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Relationship between Living Area and Log Sale Price",
+    x = "Above-ground living area (sq ft)",
+    y = "log(SalePrice)"
+  )
+
+```
+```{r}
+library(tidyverse)
+
+# Compute median per quality level
+medians <- test_price %>%
+  group_by(OverallQual_fctr) %>%
+  summarise(median_price = median(log_saleprice, na.rm = TRUE))
+
+# Jitter plot + median line
+ggplot(test_price, aes(x = OverallQual_fctr, y = log_saleprice)) +
+  geom_jitter(alpha = 0.25, width = 0.2, color = "steelblue") +
+  geom_line(data = medians,
+            aes(x = OverallQual_fctr, y = median_price, group = 1),
+            color = "red", linewidth = 1.2) +
+  geom_point(data = medians,
+             aes(x = OverallQual_fctr, y = median_price),
+             color = "red", size = 3) +
+  labs(
+    title = "Log Sale Price by Overall Quality with Median Trend Line",
+    x = "Overall Quality (1–10)",
+    y = "log(SalePrice)"
+  )
+
+
+```
+
+
+```{r}
+test_price %>%
+  mutate(
+    Neighborhood = fct_reorder(Neighborhood, log_saleprice, .fun = median)
+  ) %>%
+  ggplot(aes(x = Neighborhood, y = log_saleprice)) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(
+    title = "Log Sale Price Across Neighborhoods",
+    x = "Neighborhood (ordered by median price)",
+    y = "log(SalePrice)"
+  )
+
+```
+
