@@ -73,21 +73,30 @@ train %>%
 # Cleaning test
 clean_names(test)
 test <- test %>%
-   mutate(MSSubClass_fctr = as.factor(MSSubClass),
+ mutate(MSSubClass_fctr = as.factor(MSSubClass),
+         OverallQual_fctr = as.factor(OverallQual),
+         OverallCond_fctr = as.factor(OverallCond),
+         ExterQual_fctr = as.factor(ExterQual),
+         ExterCond_fctr = as.factor(ExterCond),
+         BsmtQual_fctr = as.factor(BsmtQual),
+         BsmtCond_fctr = as.factor(BsmtCond),
          BsmtExposure_fctr = as.factor(BsmtExposure),
          BsmtFinType1_fctr = as.factor(BsmtFinType1),
          BsmtFinType2_fctr = as.factor(BsmtFinType2),
          HeatingQC_fctr = as.factor(HeatingQC),
+         KitchenQual_fctr = as.factor(KitchenQual),
          Functional_fctr = as.factor(Functional),
          FireplaceQu_fctr = as.factor(FireplaceQu),
+         GarageQual_fctr = as.factor(GarageQual),
          GarageFinish_fctr = as.factor(GarageFinish),
+         GarageCond_fctr = as.factor(GarageCond),
          PoolQC_fctr = as.factor(PoolQC),
          Fence_fctr = as.factor(Fence))
 test %>%
   summarise(across(everything(), ~n_distinct(.x))) %>%
   select(where(~.x == 0))
 
-# Shows that there are no columns with no arguments, hence this data frame must have no useless columns
+# Shows that there are no columns with no arguments, hence this data frame must have no unnecessary columns
 ```
 
 
@@ -116,17 +125,6 @@ test_price %>%
 
 # We have worked out that the mean price and median price is the same to 3 significance figure accuracy, this suggests that the distribution of sales price for housing could be approximated to a normal distribution and almost symmetrical, implying that there are no outliers in our data.
 
-```{r}
-# investigating correlation between SalePrice and LotArea
-test_price %>%
-  ggplot(aes(
-    x = LotArea,
-    y = SalePrice)) +
-  geom_point(color = "red") +
-  geom_smooth(method = lm)
-```
-
-# From our scatter point plot when adjusted to standard error, we can see that there is a correlation visually between SalePrices and LotArea, predicting a possible dependency. The standard error increases as we approach greater values in LotArea and SalePrices, which suggests possible outliers, but also due to the lack of data.
 
 ```{r}
 
@@ -151,6 +149,22 @@ ggplot(test_price, aes(x = log_saleprice)) +
 
 #The raw SalePrice distribution was highly right-skewed. We applied a natural log transformation, which produced a more symmetric distribution and better supported linear model assumptions.
 
+```{r}
+# investigating correlation between SalePrice and LotArea
+test_price %>%
+  ggplot(aes(
+    x = LotArea,
+    y = log_saleprice)) +
+  geom_point(color = "red") +
+  geom_smooth(method = lm) +
+  labs(
+    title = "Relationship between Property Area and Log Sale Price",
+    x = "Total Property Area (sq ft)",
+    y = "log(SalePrice)"
+  )
+```
+
+# From our scatter point plot when adjusted to standard error, we can see that there is a correlation visually between SalePrices and LotArea, predicting a possible dependency. The standard error increases as we approach greater values in LotArea and SalePrices, which suggests possible outliers, but also due to the lack of data.
 
 ```{r}
 ggplot(test_price, aes(x = GrLivArea, y = log_saleprice)) +
@@ -186,9 +200,10 @@ ggplot(test_price, aes(x = OverallQual_fctr, y = log_saleprice)) +
     y = "log(SalePrice)"
   )
 
-
+test_price %>%
+  count(OverallQual_fctr)
 ```
-
+# In our Log Sale Price Against Median Quality plot, there seems to be an overall trend from quality equals 2 to 10, with an anomoly at 1. By counting how many data points were given for each score, it is clear that the anomoly is a cause due to lack of data, hence unreliable. It is difficult to assume a general correlation for scores with few data points, where scores with much data points has suggested that the SalePrice does not increase, at least not significantly due to the quality assessed.
 
 ```{r}
 test_price %>%
@@ -203,6 +218,7 @@ test_price %>%
     x = "Neighborhood (ordered by median price)",
     y = "log(SalePrice)"
   )
-
+test_price %>%
+  count(Neighborhood)
 ```
 
