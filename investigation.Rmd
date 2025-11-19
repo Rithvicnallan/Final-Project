@@ -163,7 +163,7 @@ ggplot(test_price, aes(x = log_saleprice)) +
 
 ```{r}
 ggplot(test_price, aes(x = GrLivArea, y = log_saleprice)) +
-  geom_point(alpha = 0.5) +
+  geom_point(alpha = 0.25) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(
     title = "Relationship between Living Area and Log Sale Price",
@@ -172,10 +172,8 @@ ggplot(test_price, aes(x = GrLivArea, y = log_saleprice)) +
   )
 
 ```
-```{r}
-library(tidyverse)
 
-# Compute median per quality level
+```{r}
 medians <- test_price %>%
   group_by(OverallQual_fctr) %>%
   summarise(median_price = median(log_saleprice, na.rm = TRUE))
@@ -202,7 +200,7 @@ ggplot(test_price, aes(x = OverallQual_fctr, y = log_saleprice)) +
 ```{r}
 test_price %>%
   mutate(
-    Neighborhood = fct_reorder(Neighborhood, log_saleprice, .fun = median)
+    Neighborhood = fct_reorder(Neighborhood, log_saleprice)
   ) %>%
   ggplot(aes(x = Neighborhood, y = log_saleprice)) +
   geom_boxplot() +
@@ -212,6 +210,46 @@ test_price %>%
     x = "Neighborhood (ordered by median price)",
     y = "log(SalePrice)"
   )
+
+```
+
+```{r}
+# Model 1 — structural only
+mod1 <- lm(log_saleprice ~ GrLivArea + OverallQual, data = test_price)
+
+# Model 2 — structural + location + amenities
+mod2 <- lm(log_saleprice ~ GrLivArea + OverallQual + Neighborhood + GarageCars + YearBuilt,
+           data = test_price)
+
+# Compare adjusted R2
+summary(mod1)$adj.r.squared
+summary(mod2)$adj.r.squared
+
+```
+
+```{r}
+rmse <- function(a, p) sqrt(mean((a - p)^2))
+
+rmse_mod1 <- rmse(test_price$log_saleprice, predict(mod1))
+rmse_mod2 <- rmse(test_price$log_saleprice, predict(mod2))
+
+rmse_mod1
+rmse_mod2
+```
+
+
+```{r}
+diag_df <- tibble(
+  fitted = fitted(mod2),
+  resid = resid(mod2)
+)
+
+ggplot(diag_df, aes(fitted, resid)) +
+  geom_point(alpha = 0.4) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Residuals vs Fitted Values",
+       x = "Fitted log(SalePrice)",
+       y = "Residuals")
 
 ```
 
