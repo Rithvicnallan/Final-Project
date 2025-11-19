@@ -73,23 +73,14 @@ train %>%
 # Cleaning test
 clean_names(test)
 test <- test %>%
-  mutate(MSSubClass_fctr = as.factor(MSSubClass),
-         OverallQual_fctr = as.factor(OverallQual),
-         OverallCond_fctr = as.factor(OverallCond),
-         ExterQual_fctr = as.factor(ExterQual),
-         ExterCond_fctr = as.factor(ExterCond),
-         BsmtQual_fctr = as.factor(BsmtQual),
-         BsmtCond_fctr = as.factor(BsmtCond),
+   mutate(MSSubClass_fctr = as.factor(MSSubClass),
          BsmtExposure_fctr = as.factor(BsmtExposure),
          BsmtFinType1_fctr = as.factor(BsmtFinType1),
          BsmtFinType2_fctr = as.factor(BsmtFinType2),
          HeatingQC_fctr = as.factor(HeatingQC),
-         KitchenQual_fctr = as.factor(KitchenQual),
          Functional_fctr = as.factor(Functional),
          FireplaceQu_fctr = as.factor(FireplaceQu),
-         GarageQual_fctr = as.factor(GarageQual),
          GarageFinish_fctr = as.factor(GarageFinish),
-         GarageCond_fctr = as.factor(GarageCond),
          PoolQC_fctr = as.factor(PoolQC),
          Fence_fctr = as.factor(Fence))
 test %>%
