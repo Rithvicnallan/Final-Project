@@ -43,7 +43,7 @@ sum(is.na(sample_submission))
 # Cleaning train
 clean_names(train)
 train <- train %>%
-  mutate(MSSubClass_fctr = as.factor(MSSubClass),
+ mutate(MSSubClass_fctr = as.factor(MSSubClass),
          OverallQual_fctr = as.factor(OverallQual),
          OverallCond_fctr = as.factor(OverallCond),
          ExterQual_fctr = as.factor(ExterQual),
@@ -99,6 +99,18 @@ test %>%
 # Shows that there are no columns with no arguments, hence this data frame must have no unnecessary columns
 ```
 
+```{r} 
+# find the sum of missing values for each column
+colMeans(is.na(train)) * 100
+train_clean <- train %>%
+  select(-Alley, -PoolQC, -Fence, -MiscFeature, -PoolQC_fctr, -Fence_fctr, -FireplaceQu, -FireplaceQu_fctr)
+colMeans(is.na(test)) * 100
+test_price_clean <- test_price %>%
+  select(-Alley, -PoolQC, -Fence, -MiscFeature, -PoolQC_fctr, -Fence_fctr, -FireplaceQu, -FireplaceQu_fctr)
+```
+```{r}
+
+```
 
 ```{r}
 test_price <- test %>%
@@ -123,7 +135,8 @@ test_price %>%
                 linewidth = 1)
 ```
 
-# We have worked out that the mean price and median price is the same to 3 significance figure accuracy, this suggests that the distribution of sales price for housing could be approximated to a normal distribution and almost symmetrical, implying that there are no outliers in our data.
+# We have worked out that the mean price and median price is the same to 3 significance figure accuracy, this suggests that the distribution of sales price for housing could be approximated to a normal distribution.
+
 
 
 ```{r}
@@ -151,7 +164,7 @@ ggplot(test_price, aes(x = log_saleprice)) +
 
 ```{r}
 # investigating correlation between SalePrice and LotArea
-test_price %>%
+test_price_clean %>%
   ggplot(aes(
     x = LotArea,
     y = log_saleprice)) +
@@ -167,7 +180,7 @@ test_price %>%
 # From our scatter point plot when adjusted to standard error, we can see that there is a correlation visually between SalePrices and LotArea, predicting a possible dependency. The standard error increases as we approach greater values in LotArea and SalePrices, which suggests possible outliers, but also due to the lack of data.
 
 ```{r}
-ggplot(test_price, aes(x = GrLivArea, y = log_saleprice)) +
+ggplot(test_price_clean, aes(x = GrLivArea, y = log_saleprice)) +
   geom_point(alpha = 0.25) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(
@@ -179,12 +192,12 @@ ggplot(test_price, aes(x = GrLivArea, y = log_saleprice)) +
 ```
 
 ```{r}
-medians <- test_price %>%
+medians <- test_price_clean %>%
   group_by(OverallQual_fctr) %>%
   summarise(median_price = median(log_saleprice, na.rm = TRUE))
 
 # Jitter plot + median line
-ggplot(test_price, aes(x = OverallQual_fctr, y = log_saleprice)) +
+ggplot(test_price_clean, aes(x = OverallQual_fctr, y = log_saleprice)) +
   geom_jitter(alpha = 0.25, width = 0.2, color = "steelblue") +
   geom_line(data = medians,
             aes(x = OverallQual_fctr, y = median_price, group = 1),
@@ -198,13 +211,13 @@ ggplot(test_price, aes(x = OverallQual_fctr, y = log_saleprice)) +
     y = "log(SalePrice)"
   )
 
-test_price %>%
+test_price_clean %>%
   count(OverallQual_fctr)
 ```
 # In our Log Sale Price Against Median Quality plot, there seems to be an overall trend from quality equals 2 to 10, with an anomoly at 1. By counting how many data points were given for each score, it is clear that the anomoly is a cause due to lack of data, hence unreliable. It is difficult to assume a general correlation for scores with few data points, where scores with much data points has suggested that the SalePrice does not increase, at least not significantly due to the quality assessed.
 
 ```{r}
-test_price %>%
+test_price_clean %>%
   mutate(
     Neighborhood = fct_reorder(Neighborhood, log_saleprice)
   ) %>%
@@ -216,17 +229,17 @@ test_price %>%
     x = "Neighborhood (ordered by median price)",
     y = "log(SalePrice)"
   )
-test_price %>%
+test_price_clean %>%
   count(Neighborhood)
 ```
 
 ```{r}
 # Model 1 — structural only
-mod1 <- lm(log_saleprice ~ GrLivArea + OverallQual, data = test_price)
+mod1 <- lm(log_saleprice ~ GrLivArea + OverallQual, data = test_price_clean)
 
 # Model 2 — structural + location + amenities
 mod2 <- lm(log_saleprice ~ GrLivArea + OverallQual + Neighborhood + GarageCars + YearBuilt,
-           data = test_price)
+           data = test_price_clean)
 
 # Compare adjusted R2
 summary(mod1)$adj.r.squared
@@ -237,8 +250,8 @@ summary(mod2)$adj.r.squared
 ```{r}
 rmse <- function(a, p) sqrt(mean((a - p)^2))
 
-rmse_mod1 <- rmse(test_price$log_saleprice, predict(mod1))
-rmse_mod2 <- rmse(test_price$log_saleprice, predict(mod2))
+rmse_mod1 <- rmse(test_price_clean$log_saleprice, predict(mod1))
+rmse_mod2 <- rmse(test_price_clean$log_saleprice, predict(mod2))
 
 rmse_mod1
 rmse_mod2
@@ -260,3 +273,7 @@ ggplot(diag_df, aes(fitted, resid)) +
 
 ```
 
+```{r}
+
+
+```
