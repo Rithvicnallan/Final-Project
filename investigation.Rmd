@@ -144,7 +144,7 @@ train_price_clean %>%
 ```
 
 ```{r}
-train <- train %>%
+train_2 <- train %>%
   mutate(OverallCond = case_when(
     OverallCond > 7 ~ "High Cond",
     OverallCond < 4 ~ "Low Cond",
@@ -152,7 +152,7 @@ train <- train %>%
 ```
 
 ```{r}
-train %>%
+train_2 %>%
   mutate(
   OverallCond = fct_relevel(as.factor(OverallCond), "Low Cond", "Med Cond", "High Cond")) %>%
   ggplot(aes(x = OverallCond,
@@ -238,3 +238,28 @@ summary(model2)
 summary(model3)
 
 ```
+
+```{r}
+train_rec_1 <- recipe(
+  log_saleprice ~ MSZoning + LotArea + Neighborhood,
+  data = train) %>%
+  step_unknown(all_nominal_predictors()) %>%
+  step_dummy(all_nominal_predictors())
+train_mod_1 <- linear_reg() %>%
+  set_engine("lm")
+train_wflow_1 <- workflow() %>%
+  add_model(train_mod_1) %>%
+  add_recipe(train_rec_1)
+```
+
+```{r}
+train_fit_1 <- train_wflow_1 %>%
+  fit(data = train)
+tidy(train_fit_1)
+```
+
+```{r}
+train_test_1 <- predict(train_fit_1, test, type = "prob") %>%
+  bind_cols(test)
+```
+
