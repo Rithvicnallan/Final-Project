@@ -67,7 +67,20 @@ test %>%
 
 # We have worked out that the mean price and median price is the same to 3 significance figure accuracy, this suggests that the distribution of sales price for housing could be approximated to a normal distribution.
 
+```{r}
+OverallCo <- train %>%
+  select(OverallCond) %>%
+  mutate(QualityOfCond = case_when(
+    OverallCond > 5 ~ "High Cond",
+    OverallCond < 5 ~ "Low Cond",
+    OverallCond == 5 ~ "Med Cond"
+  )) %>%
+  ggplot(aes())
+```
 
+```{r}
+
+```
 
 ```{r}
 train
