@@ -68,26 +68,6 @@ test %>%
 # We have worked out that the mean price and median price is the same to 3 significance figure accuracy, this suggests that the distribution of sales price for housing could be approximated to a normal distribution.
 
 ```{r}
-OverallCo <- train %>%
-  select(OverallCond) %>%
-  mutate(OverallCond = case_when(
-    OverallCond > 7 ~ "High Cond",
-    OverallCond < 4 ~ "Low Cond",
-    OverallCond > 3 & OverallCond < 8  ~ "Med Cond"))
-```
-
-```{r}
-OverallCo %>%
-  mutate(as.factor(OverallCond)) %>%
-  OverallCond = fct_relevel(OverallCond, "Low Cond", "Med Cond", "High Cond")
-```
-
-```{r}
-OverallCo %>%
-    OverallCond = fct_relevel(OverallCond, "Low Cond", "Med Cond", "High Cond")
-```
-
-```{r}
 train
 train <- train %>%
   mutate(
@@ -162,6 +142,23 @@ ggplot(train_price_clean, aes(x = OverallQual_fctr, y = log_saleprice)) +
 train_price_clean %>%
   count(OverallQual_fctr)
 ```
+
+```{r}
+train <- train %>%
+  mutate(OverallCond = case_when(
+    OverallCond > 7 ~ "High Cond",
+    OverallCond < 4 ~ "Low Cond",
+    OverallCond > 3 & OverallCond < 8  ~ "Med Cond"))
+```
+
+```{r}
+train %>%
+  mutate(
+  OverallCond = fct_relevel(as.factor(OverallCond), "Low Cond", "Med Cond", "High Cond")) %>%
+  ggplot(aes(x = OverallCond,
+             y = log_sale))
+```
+
 # In our Log Sale Price Against Median Quality plot, there seems to be an overall trend from quality equals 2 to 10, with an anomoly at 1. By counting how many data points were given for each score, it is clear that the anomoly is a cause due to lack of data, hence unreliable. It is difficult to assume a general correlation for scores with few data points, where scores with much data points has suggested that the SalePrice does not increase, at least not significantly due to the quality assessed.
 
 ```{r}
