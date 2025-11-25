@@ -43,12 +43,12 @@ sum(is.na(sample_submission))
 # Cleaning train
 
 train <- train %>%
-  select(Id,MSZoning,LotArea,Neighborhood,Utilities,OverallCond)
+  select(Id,MSZoning,LotArea,Neighborhood,Utilities,OverallCond,SalePrice)
 
 train %>%
   summarise(across(everything(), ~n_distinct(.x))) %>%
   select(where(~.x == 0))
-
+train
 # demonstrates that there are no columns with no arguments, hence this data frame must have no useless columns.
 ```
 
@@ -65,20 +65,13 @@ test %>%
 # Shows that there are no columns with no arguments, hence this data frame must have no unnecessary columns
 ```
 
-
-```{r}
-train_price <- train %>%
-  full_join(sample_submission, by = 'Id')
-
-```
-
 # We have worked out that the mean price and median price is the same to 3 significance figure accuracy, this suggests that the distribution of sales price for housing could be approximated to a normal distribution.
 
 
 
 ```{r}
-
-train_price <- train_price %>%
+train
+train <- train %>%
   mutate(
     # log-transform target
     log_saleprice = log(SalePrice),
@@ -90,7 +83,7 @@ ggplot(train, aes(x = SalePrice)) +
   labs(title = "Distribution of SalePrice")
 
 # Log-transformed SalePrice
-ggplot(train_price, aes(x = log_saleprice)) +
+ggplot(train, aes(x = log_saleprice)) +
   geom_histogram(bins = 50) +
   labs(title = "Distribution of log(SalePrice)")
 
@@ -215,7 +208,7 @@ group3 <- c("MSZoning", "LotArea","Neighborhood")
 group2 <- c("Utilities", "OverallCond")
 
 # Model using 2-variable group
-model2 <- lm(log_saleprice ~ Utilities + OverallCond, data = train)
+model2 <- lm(log_saleprice ~ Utilities + OverallCond, data = train_price)
 
 # Model using 3-variable group
 model3 <- lm(price ~ var3 + var4 + var5, data = df)
