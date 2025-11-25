@@ -107,15 +107,14 @@ ggplot(train, aes(x = log_saleprice)) +
 
 ```{r}
 # investigating correlation between SalePrice and LotArea
-train_price_clean %>%
-  ggplot(aes(
-    x = LotArea,
-    y = log_saleprice)) +
-  geom_point(color = "red") +
-  geom_smooth(method = lm) +
+ggplot(train, aes(x = LotArea, y = log_saleprice)) +
+  geom_point(alpha = 0.4) +
+  scale_x_log10() +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal() +
   labs(
-    title = "Relationship between Property Area and Log Sale Price",
-    x = "Total Property Area (sq ft)",
+    title = "log_saleprice vs LotArea (log-scaled LotArea)",
+    x = "Lot Area (log10 scale)",
     y = "log(SalePrice)"
   )
 ```
@@ -123,16 +122,42 @@ train_price_clean %>%
 # From our scatter point plot when adjusted to standard error, we can see that there is a correlation visually between SalePrices and LotArea, predicting a possible dependency. The standard error increases as we approach greater values in LotArea and SalePrices, which suggests possible outliers, but also due to the lack of data.
 
 ```{r}
-ggplot(train_price_clean, aes(x = GrLivArea, y = log_saleprice)) +
-  geom_point(alpha = 0.25) +
-  geom_smooth(method = "lm", se = FALSE) +
+ggplot(train, aes(x = reorder(MSZoning, log_saleprice, FUN = median),
+                  y = log_saleprice)) +
+  geom_boxplot() +
+  theme_minimal() +
   labs(
-    title = "Relationship between Living Area and Log Sale Price",
-    x = "Above-ground living area (sq ft)",
+    title = "log_saleprice by MSZoning (ordered)",
+    x = "MSZoning (ordered by median price)",
     y = "log(SalePrice)"
   )
 
 ```
+
+```{r}
+ggplot(train, aes(x = reorder(Neighborhood, log_saleprice, FUN = median),
+                  y = log_saleprice)) +
+  geom_boxplot(outlier.alpha = 0.3) +
+  coord_flip() +
+  theme_minimal() +
+  labs(
+    title = "log_saleprice by Neighborhood",
+    x = "Neighborhood (ordered by median price)",
+    y = "log(SalePrice)"
+  )
+
+```
+```{r}
+ggplot(train, aes(x = OverallCond, y = log_saleprice)) +
+  geom_boxplot(fill = "#69b3a2") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) by OverallCond Category",
+    x = "Overall Condition Category",
+    y = "log(SalePrice)"
+  )
+```
+
 
 ```{r}
 medians <- train_price_clean %>%
@@ -159,22 +184,6 @@ train_price_clean %>%
 ```
 # In our Log Sale Price Against Median Quality plot, there seems to be an overall trend from quality equals 2 to 10, with an anomoly at 1. By counting how many data points were given for each score, it is clear that the anomoly is a cause due to lack of data, hence unreliable. It is difficult to assume a general correlation for scores with few data points, where scores with much data points has suggested that the SalePrice does not increase, at least not significantly due to the quality assessed.
 
-```{r}
-train_price_clean %>%
-  mutate(
-    Neighborhood = fct_reorder(Neighborhood, log_saleprice)
-  ) %>%
-  ggplot(aes(x = Neighborhood, y = log_saleprice)) +
-  geom_boxplot() +
-  coord_flip() +
-  labs(
-    title = "Log Sale Price Across Neighborhoods",
-    x = "Neighborhood (ordered by median price)",
-    y = "log(SalePrice)"
-  )
-train_price_clean %>%
-  count(Neighborhood)
-```
 
 ```{r}
 # Model 1 — structural only
