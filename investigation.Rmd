@@ -156,7 +156,12 @@ train %>%
   mutate(
   OverallCond = fct_relevel(as.factor(OverallCond), "Low Cond", "Med Cond", "High Cond")) %>%
   ggplot(aes(x = OverallCond,
-             y = log_sale))
+             y = log_saleprice)) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(x = "Overall Condition Categorically",
+       y = "log(saleprice)",
+       title = "log(saleprice) against the Overall Condition")
 ```
 
 # In our Log Sale Price Against Median Quality plot, there seems to be an overall trend from quality equals 2 to 10, with an anomoly at 1. By counting how many data points were given for each score, it is clear that the anomoly is a cause due to lack of data, hence unreliable. It is difficult to assume a general correlation for scores with few data points, where scores with much data points has suggested that the SalePrice does not increase, at least not significantly due to the quality assessed.
