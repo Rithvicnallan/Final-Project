@@ -57,6 +57,32 @@ test <- test %>%
     OverallQual > 7 ~ "High Qual",
     OverallQual < 4 ~ "Low Qual",
     OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
+
+train <- train %>%
+  mutate(
+    log_saleprice = log(SalePrice),)
+
+train <- train %>%
+ mutate(log_avg_price = mean(log_saleprice))
+
+train <- train %>%
+  mutate(Mag_Price = case_when(
+    log_saleprice > log_avg_price ~ "High",
+    log_saleprice < log_avg_price ~ "Low"),
+    Mag_Price = fct_relevel(Mag_Price, "Low", "High"))
+
+sample_submission <- sample_submission %>%
+  mutate(
+    log_saleprice = log(SalePrice),)
+
+sample_submission <- sample_submission %>%
+ mutate(log_avg_price = mean(log_saleprice))
+
+sample_submission <- sample_submission %>%
+  mutate(Mag_Price = case_when(
+    log_saleprice > log_avg_price ~ "High",
+    log_saleprice < log_avg_price ~ "Low"),
+    Mag_Price = fct_relevel(Mag_Price, "Low", "High"))
 ```
 
 ```{r include=FALSE}
@@ -163,32 +189,6 @@ data.frame(
 # In this chunk I'm doing a bunch of analysis that I don't want to present 
 # in my slides. But I need the resulting data frame for a plot I want to present.
 
-train <- train %>%
-  select(Id,OverallQual,GrLivArea,YearBuilt,Neighborhood,MSZoning,LotFrontage,SalePrice)
-
-train <- train %>%
-  mutate(OverallQual = case_when(
-    OverallQual > 7 ~ "High Qual",
-    OverallQual < 4 ~ "Low Qual",
-    OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
-
-train <- train %>%
-  mutate(
-  OverallQual = fct_relevel(as.factor(OverallQual), "Low Qual", "Med Qual", "High Qual"))
-
-test <- test %>%
- select(Id,OverallQual,GrLivArea,YearBuilt,Neighborhood,MSZoning,LotFrontage)
-
-test <- test %>%
-  mutate(OverallQual = case_when(
-    OverallQual > 7 ~ "High Qual",
-    OverallQual < 4 ~ "Low Qual",
-    OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
-train <- train %>%
-  mutate(
-    # log-transform target
-    log_saleprice = log(SalePrice),
-  )
 
 ```
 
@@ -288,62 +288,98 @@ ggplot(penguins, aes(x = bill_length_mm, y = species, color = species)) +
 
 
 ```{r include=FALSE}
-sample_submission <- read_csv("data/sample_submission.csv")
-test <- read_csv("data/test.csv")
-train <- read_csv("data/train.csv")
-train <- train %>%
-  mutate(
-    # log-transform target
-    log_saleprice = log(SalePrice),
-  )
-train <- train %>%
- mutate(log_avg_price = mean(log_saleprice))
 
-sample_submission <- sample_submission %>%
- mutate(log_saleprice = log(SalePrice))
-
-sample_submission <- sample_submission %>%
- mutate(log_avg_price = mean(log_saleprice))
-
-train <- train %>%
-  mutate(Mag_Price = case_when(
-    log_saleprice > log_avg_price ~ "High",
-    log_saleprice < log_avg_price ~ "Low"),
-    Mag_Price = fct_relevel(Mag_Price, "Low", "High"))
-
-sample_submission <- sample_submission %>%
-  mutate(Mag_Price = case_when(
-    log_saleprice > log_avg_price ~ "High",
-    log_saleprice < log_avg_price ~ "Low"),
-    Mag_Price = fct_relevel(Mag_Price, "Low", "High"))
-train_rec_2 <- recipe(
+rec_A <- recipe(
   Mag_Price ~ GrLivArea + OverallQual + YearBuilt,
-  data = train) %>%
+  data = train
+) %>%
   step_dummy(all_nominal_predictors())
-train_mod_2 <- logistic_reg() %>%
+
+# logistic model
+mod_A <- logistic_reg() %>%
   set_engine("glm")
-train_wflow_2 <- workflow() %>%
-  add_model(train_mod_2) %>%
-  add_recipe(train_rec_2)
-train_fit_2 <- train_wflow_2 %>%
+
+wf_A <- workflow() %>%
+  add_model(mod_A) %>%
+  add_recipe(rec_A)
+
+fit_A <- wf_A %>%
   fit(data = train)
-tidy(train_fit_2)
-train_test_2 <- predict(train_fit_2, test, type = "prob") %>%
-  bind_cols(sample_submission )
-glimpse(train_test_2)
-roc <- roc_curve(
-  train_test_2,
-  truth = Mag_Price,
-  .pred_High,
-  event_level = "second"
-)
-autoplot(roc)
-roc_auc(
-  train_test_2,
-  truth = Mag_Price,
-  .pred_High,
-  event_level = "second"
-)
+
+pred_A_test <- predict(fit_A, new_data = test, type = "prob") %>%
+  bind_cols(test %>% select(Id))
+
+head(pred_A_test)
+
+rec_B <- recipe(
+  Mag_Price ~ Neighborhood + MSZoning + LotFrontage,
+  data = train
+) %>%
+  step_unknown(all_nominal_predictors()) %>%
+  step_dummy(all_nominal_predictors())
+
+mod_B <- logistic_reg() %>%
+  set_engine("glm")
+
+wf_B <- workflow() %>%
+  add_model(mod_B) %>%
+  add_recipe(rec_B)
+
+fit_B <- wf_B %>%
+  fit(data = train)
+
+pred_B_test <- predict(fit_B, new_data = test, type = "prob") %>%
+  bind_cols(test %>% select(Id))
+
+head(pred_B_test)
+
+# truth for test set
+truth_test <- sample_submission %>%
+  select(Id, Mag_Price)
+
+roc_data_A <- pred_A_test %>%
+  inner_join(truth_test, by = "Id")
+
+roc_data_B <- pred_B_test %>%
+  inner_join(truth_test, by = "Id")
+
+names(roc_data_A)
+
+# Group A ROC & AUC
+roc_A <- roc_data_A %>%
+  roc_curve(truth = Mag_Price, .pred_High, event_level = "second")
+
+auc_A <- roc_data_A %>%
+  roc_auc(truth = Mag_Price, .pred_High, event_level = "second")
+
+# Group B ROC & AUC
+roc_B <- roc_data_B %>%
+  roc_curve(truth = Mag_Price, .pred_High, event_level = "second")
+
+auc_B <- roc_data_B %>%
+  roc_auc(truth = Mag_Price, .pred_High, event_level = "second")
+
+auc_A
+auc_B
+
+library(ggplot2)
+
+bind_rows(
+  roc_A %>% mutate(group = "Group A (house features)"),
+  roc_B %>% mutate(group = "Group B (location)")
+) %>%
+  ggplot(aes(x = 1 - specificity, y = sensitivity, colour = group)) +
+  geom_path() +
+  geom_abline(linetype = "dashed") +
+  coord_equal() +
+  theme_minimal() +
+  labs(
+    title = "ROC curves: Group A vs Group B",
+    x = "1 - Specificity (False Positive Rate)",
+    y = "Sensitivity (True Positive Rate)",
+    colour = "Model"
+  )
+
 ```
 
 Log_saleprice = -100.93 + 0.0039 * GrLivArea + 1.060 * OverallQual + 0.045 * YearBuilt
