@@ -385,7 +385,6 @@ bind_rows(
 - Group B required many dummy variables
 
 ### Conclusion
-Our analysis suggests that both groups can be used to predict house prices to a limited extent.
-
+Our analysis suggests that both groups can be used to predict house prices to a limited extent, however this does not imply that they are the sole explanatory variables. Reasons such as Ames being a college oriented city and the data set taking place during the financial crisis of 2008 are both complex contributors.
 ### References
 "House Prices - Advanced Regression Techniques." Link - https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/overview
