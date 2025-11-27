@@ -4,7 +4,7 @@
     <title>Presentation title</title>
     <meta charset="utf-8" />
     <meta name="author" content="Final Project Duo   Terry and Rithvic" />
-    <meta name="date" content="2025-11-25" />
+    <meta name="date" content="2025-11-27" />
     <script src="libs/header-attrs-2.29/header-attrs.js"></script>
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
@@ -25,7 +25,7 @@ class: center, middle, inverse, title-slide
 ### University of Edinburgh
 ]
 .date[
-### 2025-11-25
+### 2025-11-27
 ]
 
 ---
@@ -44,7 +44,7 @@ class: center, middle, inverse, title-slide
 
 class: center, middle
 
-## Research Question: What are the factors which holds most influence over house prices:
+## Research Question: What features hold most influence over house prices:
 ---
 
 class: inverse, center, middle
@@ -110,31 +110,6 @@ or text in two columns `\(^*\)`
 # Code
 
 
-``` r
-# a boring regression
-model &lt;- lm(dist ~ speed, data = cars)
-tidy(model)
-```
-
-```
-## # A tibble: 2 × 5
-##   term        estimate std.error statistic  p.value
-##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
-## 1 (Intercept)   -17.6      6.76      -2.60 1.23e- 2
-## 2 speed           3.93     0.416      9.46 1.49e-12
-```
-
-``` r
-glance(model)
-```
-
-```
-## # A tibble: 1 × 12
-##   r.squared adj.r.squared sigma statistic  p.value    df logLik   AIC   BIC
-##       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1     0.651         0.644  15.4      89.6 1.49e-12     1  -207.  419.  425.
-## # ℹ 3 more variables: deviance &lt;dbl&gt;, df.residual &lt;int&gt;, nobs &lt;int&gt;
-```
 
 ---
 
@@ -142,7 +117,7 @@ glance(model)
 
 
 
-&lt;img src="presentation_files/figure-html/plot-iris-1.png" width="80%" /&gt;
+&lt;img src="presentation_files/figure-html/unnamed-chunk-3-1.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-3-2.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-3-3.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-3-4.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-3-5.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-3-6.png" width="32%" /&gt;
 
 ---
 
@@ -153,7 +128,7 @@ glance(model)
 - goes here
 ]
 .pull-right[
-&lt;img src="presentation_files/figure-html/unnamed-chunk-2-1.png" width="100%" /&gt;
+&lt;img src="presentation_files/figure-html/unnamed-chunk-4-1.png" width="100%" /&gt;
 ]
 
 ---

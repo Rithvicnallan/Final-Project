@@ -40,7 +40,9 @@ knitr::opts_chunk$set(fig.retina = 3, dpi = 300, fig.width = 6, fig.asp = 0.618,
 
 ```{r load-data, include=FALSE}
 # Load your data here
-
+sample_submission <- read_csv("data/sample_submission.csv")
+test <- read_csv("data/test.csv")
+train <- read_csv("data/train.csv")
 ```
 
 ```{r include=FALSE}
@@ -53,7 +55,7 @@ style_xaringan(
 
 class: center, middle
 
-## Research Question: What are the factors which holds most influence over house prices:
+## Research Question: What features hold most influence over house prices:
 ---
 
 class: inverse, center, middle
@@ -118,11 +120,8 @@ or text in two columns $^*$
 
 # Code
 
-```{r boring-regression}
-# a boring regression
-model <- lm(dist ~ speed, data = cars)
-tidy(model)
-glance(model)
+```{r}
+
 ```
 
 ---
@@ -132,17 +131,100 @@ glance(model)
 ```{r recode-species, echo = FALSE}
 # In this chunk I'm doing a bunch of analysis that I don't want to present 
 # in my slides. But I need the resulting data frame for a plot I want to present.
-iris_modified <- iris %>%
-  mutate(Species = fct_other(Species, keep = "setosa"))
+
+train <- train %>%
+  select(Id,OverallQual,GrLivArea,YearBuilt,Neighborhood,MSZoning,LotFrontage,SalePrice)
+
+train <- train %>%
+  mutate(OverallQual = case_when(
+    OverallQual > 7 ~ "High Qual",
+    OverallQual < 4 ~ "Low Qual",
+    OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
+
+train <- train %>%
+  mutate(
+  OverallQual = fct_relevel(as.factor(OverallQual), "Low Qual", "Med Qual", "High Qual"))
+
+test <- test %>%
+ select(Id,OverallQual,GrLivArea,YearBuilt,Neighborhood,MSZoning,LotFrontage)
+
+test <- test %>%
+  mutate(OverallQual = case_when(
+    OverallQual > 7 ~ "High Qual",
+    OverallQual < 4 ~ "Low Qual",
+    OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
+
+train <- train %>%
+  mutate(
+    # log-transform target
+    log_saleprice = log(SalePrice),
+  )
 ```
 
-```{r plot-iris, echo = FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold', out.width='32%'}
 # Code hidden with echo = FALSE
 # Uses modified iris dataset from previous chunk
 # Play around with height and width until you're happy with the look
-ggplot(data = iris_modified, mapping = aes(x = Sepal.Width, y = Sepal.Length, color = Species)) +
-  geom_point() + 
-  theme_minimal() # theme options: https://ggplot2.tidyverse.org/reference/ggtheme.html
+ggplot(train, aes(x = factor(OverallQual), y = log_saleprice)) +
+  geom_boxplot(fill = "#6AAEDF") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) by Overall Quality",
+    x = "Overall Quality",
+    y = "log(SalePrice)"
+  )
+
+ggplot(train, aes(x = GrLivArea, y = log_saleprice)) +
+  geom_point(alpha = 0.35) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) vs Above-Ground Living Area",
+    x = "GrLivArea (sq ft)",
+    y = "log(SalePrice)"
+  )
+
+ggplot(train, aes(x = YearBuilt, y = log_saleprice)) +
+  geom_point(alpha = 0.35) +
+  geom_smooth(method = "loess", se = FALSE, color = "darkgreen") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) vs Year Built",
+    x = "Year Built",
+    y = "log(SalePrice)"
+  )
+
+ggplot(train, aes(
+      x = reorder(Neighborhood, log_saleprice, FUN = median),
+      y = log_saleprice)) +
+  geom_boxplot(outlier.alpha = 0.2) +
+  coord_flip() +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) by Neighborhood",
+    x = "Neighborhood (ordered by price)",
+    y = "log(SalePrice)"
+  )
+
+ggplot(train, aes(x = MSZoning, y = log_saleprice)) +
+  geom_boxplot(fill = "#F9A65A") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) by Zoning Classification",
+    x = "MSZoning",
+    y = "log(SalePrice)"
+  )
+
+ggplot(train, aes(x = LotFrontage, y = log_saleprice)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) vs Lot Frontage",
+    x = "LotFrontage (linear feet)",
+    y = "log(SalePrice)"
+  )
+
 ```
 
 ---
