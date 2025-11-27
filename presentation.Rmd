@@ -178,7 +178,7 @@ train <- train %>%
 
 ```
 
-# Group A (House Features)
+### Group A (House Features)
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold', out.width='32%'}
 # Code hidden with echo = FALSE
@@ -213,8 +213,8 @@ ggplot(train, aes(x = YearBuilt, y = log_saleprice)) +
     y = "log(SalePrice)"
   )
 ```
----
-# Group B (Location Variables)
+
+### Group B (Location Variables)
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold', out.width='32%'}
 ggplot(train, aes(
