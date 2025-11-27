@@ -92,7 +92,7 @@ ggplot(train, aes(x = log_saleprice)) +
 
 ```{r}
 # investigating correlation between SalePrice and LotArea
-train_price_clean %>%
+train %>%
   ggplot(aes(
     x = LotArea,
     y = log_saleprice)) +
@@ -108,7 +108,7 @@ train_price_clean %>%
 # From our scatter point plot when adjusted to standard error, we can see that there is a correlation visually between SalePrices and LotArea, predicting a possible dependency. The standard error increases as we approach greater values in LotArea and SalePrices, which suggests possible outliers, but also due to the lack of data.
 
 ```{r}
-ggplot(train_price_clean, aes(x = GrLivArea, y = log_saleprice)) +
+ggplot(train, aes(x = GrLivArea, y = log_saleprice)) +
   geom_point(alpha = 0.25) +
   geom_smooth(method = "lm", se = FALSE) +
   labs(
@@ -120,27 +120,27 @@ ggplot(train_price_clean, aes(x = GrLivArea, y = log_saleprice)) +
 ```
 
 ```{r}
-medians <- train_price_clean %>%
-  group_by(OverallQual_fctr) %>%
+medians <- train %>%
+  group_by(OverallCond) %>%
   summarise(median_price = median(log_saleprice, na.rm = TRUE))
 
 # Jitter plot + median line
-ggplot(train_price_clean, aes(x = OverallQual_fctr, y = log_saleprice)) +
+ggplot(train, aes(x = OverallCond, y = log_saleprice)) +
   geom_jitter(alpha = 0.25, width = 0.2, color = "steelblue") +
   geom_line(data = medians,
-            aes(x = OverallQual_fctr, y = median_price, group = 1),
+            aes(x = OverallCond, y = median_price, group = 1),
             color = "red", linewidth = 1.2) +
   geom_point(data = medians,
-             aes(x = OverallQual_fctr, y = median_price),
+             aes(x = OverallCond, y = median_price),
              color = "red", size = 3) +
   labs(
-    title = "Log Sale Price by Overall Quality with Median Trend Line",
-    x = "Overall Quality (1–10)",
+    title = "Log Sale Price by Overall Condition with Median Trend Line",
+    x = "Overall Condition (1–10)",
     y = "log(SalePrice)"
   )
 
-train_price_clean %>%
-  count(OverallQual_fctr)
+train %>%
+  count(OverallCond)
 ```
 
 ```{r}
@@ -167,7 +167,7 @@ train_2 %>%
 # In our Log Sale Price Against Median Quality plot, there seems to be an overall trend from quality equals 2 to 10, with an anomoly at 1. By counting how many data points were given for each score, it is clear that the anomoly is a cause due to lack of data, hence unreliable. It is difficult to assume a general correlation for scores with few data points, where scores with much data points has suggested that the SalePrice does not increase, at least not significantly due to the quality assessed.
 
 ```{r}
-train_price_clean %>%
+train %>%
   mutate(
     Neighborhood = fct_reorder(Neighborhood, log_saleprice)
   ) %>%
@@ -179,17 +179,17 @@ train_price_clean %>%
     x = "Neighborhood (ordered by median price)",
     y = "log(SalePrice)"
   )
-train_price_clean %>%
+train %>%
   count(Neighborhood)
 ```
 
 ```{r}
 # Model 1 — structural only
-mod1 <- lm(log_saleprice ~ GrLivArea + OverallQual, data = train_price_clean)
+mod1 <- lm(log_saleprice ~ GrLivArea + OverallCond, data = train_price_clean)
 
 # Model 2 — structural + location + amenities
-mod2 <- lm(log_saleprice ~ GrLivArea + OverallQual + Neighborhood + GarageCars + YearBuilt,
-           data = train_price_clean)
+mod2 <- lm(log_saleprice ~ GrLivArea + OverallCond + Neighborhood + GarageCars + YearBuilt,
+           data = train)
 
 # Compare adjusted R2
 summary(mod1)$adj.r.squared
@@ -200,8 +200,8 @@ summary(mod2)$adj.r.squared
 ```{r}
 rmse <- function(a, p) sqrt(mean((a - p)^2))
 
-rmse_mod1 <- rmse(train_price_clean$log_saleprice, predict(mod1))
-rmse_mod2 <- rmse(train_price_clean$log_saleprice, predict(mod2))
+rmse_mod1 <- rmse(train$log_saleprice, predict(mod1))
+rmse_mod2 <- rmse(train$log_saleprice, predict(mod2))
 
 rmse_mod1
 rmse_mod2
@@ -243,8 +243,8 @@ summary(model3)
 train_rec_1 <- recipe(
   log_saleprice ~ MSZoning + LotArea + Neighborhood,
   data = train) %>%
-  step_unknown(all_nominal_predictors()) %>%
-  step_dummy(all_nominal_predictors())
+  Step_unknown(all_nominal_predictors()) %>%
+  step_dummy
 train_mod_1 <- linear_reg() %>%
   set_engine("lm")
 train_wflow_1 <- workflow() %>%
