@@ -333,8 +333,8 @@ roc_auc(
 ```
 
 Log_saleprice = -100.93 + 0.0039 * GrLivArea + 1.060 * OverallQual + 0.045 * YearBuilt
-- Made this a logistic value, as we have mutated the log_saleprice into a categorical variable for a better visual representation of our prediction.
-- We limited the amount of variables in our regression model to prevent overfitting.
+We have fitted a generalized linear model, in this case specifically a logistic model involving several predictors, GrLivArea, OverallQual and YearBuilt to model the Mag_Price.
+We limited the amount of variables in our regression model to prevent overfitting.
 
 ```{r, echo = FALSE}
 df <- tidy(train_fit_2)
@@ -343,9 +343,8 @@ kable(df, format = "html")
 
 ---
 # Table 2
-- Trained logistic model where we mutated Magnitude of Price as high and low for log_saleprice is greater or less than mean(log_saleprice) respectively.
-- Settled with using LotFrontage, Neighborhood and MSZoning as our explanatory variables.
-- The ROC curve gave an AUC value of 0.686, which implies a below average predictive power. This suggests that the model tends to give a slightly higher predicted probability for sale prices that are greater than the mean.
+Mag_Price is either defined as High or Low by whether it is greater or lesser than the mean log_saleprice respectively.
+The ROC curve gave an AUC value of 0.686, which implies a below average predictive power. This suggests that the model tends to give a slightly higher predicted probability for sale prices that are greater than the mean.
 ```{r, echo = FALSE}
 roc <- roc_curve(
   train_test_2,
