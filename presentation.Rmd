@@ -342,7 +342,28 @@ kable(df, format = "html")
 ```
 
 ---
+# Table 2
+- Trained logistic model where we mutated Magnitude of Price as high and low for log_saleprice is greater or less than mean(log_saleprice) respectively.
+- Settled with using LotFrontage, Neighborhood and MSZoning as our explanatory variables.
+- The ROC curve gave an AUC value of 0.686, which implies a below average predictive power. This suggests that the model tends to give a slightly higher predicted probability for sale prices that are greater than the mean.
+```{r, echo = FALSE}
+roc <- roc_curve(
+  train_test_2,
+  truth = Mag_Price,
+  .pred_High,
+  event_level = "second"
+)
+autoplot(roc)
+roc_auc(
+  train_test_2,
+  truth = Mag_Price,
+  .pred_High,
+  event_level = "second"
+)
+```
 
+
+---
 # Images
 
 ```{r castle, echo = FALSE, out.width = "55%", fig.align = "center", fig.cap = "Image credit: Photo by Jörg Angeli on Unsplash."}
