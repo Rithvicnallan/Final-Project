@@ -253,25 +253,5 @@ glimpse(train_test_1)
 
 ```
 
-```{r}
-results <- train_test_1 %>%
-  mutate(
-    .pred = exp(.pred)
-  )
-results <- results %>%
-  full_join(sample_submission, by = "Id")
 
-```
-
-```{r}
-ggplot(results, aes(x = residual)) +
-  geom_histogram(bins = 40, fill = "#4E79A7", color = "white") +
-  theme_minimal() +
-  labs(
-    title = "Residual Distribution",
-    x = "Residual",
-    y = "Count"
-  )
-
-```
 
