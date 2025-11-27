@@ -259,7 +259,8 @@ tidy(train_fit_1)
 ```
 
 ```{r}
-train_test_1 <- predict(train_fit_1, test, type = "prob") %>%
+train_test_1 <- predict(train_fit_1, test, type = "numeric") %>%
   bind_cols(test)
+glimpse(train_test_1)
 ```
 
