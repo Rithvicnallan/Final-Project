@@ -91,6 +91,7 @@ ggplot(train, aes(x = log_saleprice)) +
 #The raw SalePrice distribution was highly right-skewed. We applied a natural log transformation, which produced a more symmetric distribution and better supported linear model assumptions.
 
 ```{r}
+<<<<<<< HEAD
 train <- train %>%
   mutate(OverallQual = case_when(
     OverallQual > 7 ~ "High Qual",
@@ -113,6 +114,15 @@ train <- train %>%
 ggplot(train, aes(x = factor(OverallQual), y = log_saleprice)) +
   geom_boxplot(fill = "#6AAEDF") +
   theme_minimal() +
+=======
+# investigating correlation between SalePrice and LotArea
+train %>%
+  ggplot(aes(
+    x = LotArea,
+    y = log_saleprice)) +
+  geom_point(color = "red") +
+  geom_smooth(method = lm) +
+>>>>>>> af4ff65501fe32264d2ff7974991d7c4a0f90347
   labs(
     title = "log(SalePrice) by Overall Quality",
     x = "Overall Quality",
@@ -123,6 +133,7 @@ ggplot(train, aes(x = factor(OverallQual), y = log_saleprice)) +
 # From our scatter point plot when adjusted to standard error, we can see that there is a correlation visually between SalePrices and LotArea, predicting a possible dependency. The standard error increases as we approach greater values in LotArea and SalePrices, which suggests possible outliers, but also due to the lack of data.
 
 ```{r}
+<<<<<<< HEAD
 
 # GRLIVAREA
 
@@ -130,6 +141,11 @@ ggplot(train, aes(x = GrLivArea, y = log_saleprice)) +
   geom_point(alpha = 0.35) +
   geom_smooth(method = "lm", se = FALSE, color = "blue") +
   theme_minimal() +
+=======
+ggplot(train, aes(x = GrLivArea, y = log_saleprice)) +
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm", se = FALSE) +
+>>>>>>> af4ff65501fe32264d2ff7974991d7c4a0f90347
   labs(
     title = "log(SalePrice) vs Above-Ground Living Area",
     x = "GrLivArea (sq ft)",
@@ -139,6 +155,7 @@ ggplot(train, aes(x = GrLivArea, y = log_saleprice)) +
 ```
 
 ```{r}
+<<<<<<< HEAD
 
 # YEARBUILT
 
@@ -170,6 +187,51 @@ ggplot(train, aes(x = OverallQual, y = log_saleprice)) +
 ```
 
 ```{r}
+=======
+medians <- train %>%
+  group_by(OverallCond) %>%
+  summarise(median_price = median(log_saleprice, na.rm = TRUE))
+
+# Jitter plot + median line
+ggplot(train, aes(x = OverallCond, y = log_saleprice)) +
+  geom_jitter(alpha = 0.25, width = 0.2, color = "steelblue") +
+  geom_line(data = medians,
+            aes(x = OverallCond, y = median_price, group = 1),
+            color = "red", linewidth = 1.2) +
+  geom_point(data = medians,
+             aes(x = OverallCond, y = median_price),
+             color = "red", size = 3) +
+  labs(
+    title = "Log Sale Price by Overall Condition with Median Trend Line",
+    x = "Overall Condition (1–10)",
+    y = "log(SalePrice)"
+  )
+
+train %>%
+  count(OverallCond)
+```
+
+```{r}
+train_2 <- train %>%
+  mutate(OverallCond = case_when(
+    OverallCond > 7 ~ "High Cond",
+    OverallCond < 4 ~ "Low Cond",
+    OverallCond > 3 & OverallCond < 8  ~ "Med Cond"))
+```
+
+```{r}
+train_2 %>%
+  mutate(
+  OverallCond = fct_relevel(as.factor(OverallCond), "Low Cond", "Med Cond", "High Cond")) %>%
+  ggplot(aes(x = OverallCond,
+             y = log_saleprice)) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(x = "Overall Condition Categorically",
+       y = "log(saleprice)",
+       title = "log(saleprice) against the Overall Condition")
+```
+>>>>>>> af4ff65501fe32264d2ff7974991d7c4a0f90347
 
 #YearBuilt
 
@@ -186,7 +248,7 @@ ggplot(train, aes(x = YearBuilt, y = log_saleprice)) +
 ```
 
 ```{r}
-train_price_clean %>%
+train %>%
   mutate(
     Neighborhood = fct_reorder(Neighborhood, log_saleprice)
   ) %>%
@@ -198,17 +260,17 @@ train_price_clean %>%
     x = "Neighborhood (ordered by median price)",
     y = "log(SalePrice)"
   )
-train_price_clean %>%
+train %>%
   count(Neighborhood)
 ```
 
 ```{r}
 # Model 1 — structural only
-mod1 <- lm(log_saleprice ~ GrLivArea + OverallQual, data = train_price_clean)
+mod1 <- lm(log_saleprice ~ GrLivArea + OverallCond, data = train_price_clean)
 
 # Model 2 — structural + location + amenities
-mod2 <- lm(log_saleprice ~ GrLivArea + OverallQual + Neighborhood + GarageCars + YearBuilt,
-           data = train_price_clean)
+mod2 <- lm(log_saleprice ~ GrLivArea + OverallCond + Neighborhood + GarageCars + YearBuilt,
+           data = train)
 
 # Compare adjusted R2
 summary(mod1)$adj.r.squared
@@ -219,8 +281,8 @@ summary(mod2)$adj.r.squared
 ```{r}
 rmse <- function(a, p) sqrt(mean((a - p)^2))
 
-rmse_mod1 <- rmse(train_price_clean$log_saleprice, predict(mod1))
-rmse_mod2 <- rmse(train_price_clean$log_saleprice, predict(mod2))
+rmse_mod1 <- rmse(train$log_saleprice, predict(mod1))
+rmse_mod2 <- rmse(train$log_saleprice, predict(mod2))
 
 rmse_mod1
 rmse_mod2
@@ -257,3 +319,29 @@ summary(model2)
 summary(model3)
 
 ```
+
+```{r}
+train_rec_1 <- recipe(
+  log_saleprice ~ MSZoning + LotArea + Neighborhood,
+  data = train) %>%
+  Step_unknown(all_nominal_predictors()) %>%
+  step_dummy
+train_mod_1 <- linear_reg() %>%
+  set_engine("lm")
+train_wflow_1 <- workflow() %>%
+  add_model(train_mod_1) %>%
+  add_recipe(train_rec_1)
+```
+
+```{r}
+train_fit_1 <- train_wflow_1 %>%
+  fit(data = train)
+tidy(train_fit_1)
+```
+
+```{r}
+train_test_1 <- predict(train_fit_1, test, type = "numeric") %>%
+  bind_cols(test)
+glimpse(train_test_1)
+```
+
