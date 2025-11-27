@@ -231,7 +231,7 @@ train_rec_1 <- recipe(
   log_saleprice ~ GrLivArea + OverallQual + YearBuilt,
   data = train) %>%
   step_unknown(all_nominal_predictors()) %>%
-  step_dummy
+  step_dummy(all_nominal_predictors())
 train_mod_1 <- linear_reg() %>%
   set_engine("lm")
 train_wflow_1 <- workflow() %>%
@@ -251,7 +251,58 @@ train_test_1 <- predict(train_fit_1, test, type = "numeric") %>%
   bind_cols(test)
 glimpse(train_test_1)
 
+train <- train%>%
+ mutate(log_avg_price = mean(log_saleprice))
+```
+
+```{r}
+train <- train %>%
+  mutate(Mag_Price = case_when(
+    log_saleprice > log_avg_price ~ "High Qual",
+    log_saleprice < log_avg_price ~ "Low Qual"),
+    Mag_Price = fct_relevel(Mag_Price, "Low Qual", "High Qual"))
+train
+```
+
+```{r}
+test <- test %>%
+  mutate(Mag_Price = case_when(
+    log_saleprice > log_avg_price ~ "High Qual",
+    log_saleprice < log_avg_price ~ "Low Qual"),
+    Mag_Price = fct_relevel(Mag_Price, "Low Qual", "High Qual"))
 ```
 
 
+```{r}
+train_rec_2 <- recipe(
+  Mag_Price ~ GrLivArea + OverallQual + YearBuilt,
+  data = train) %>%
+  step_dummy(all_nominal_predictors())
+train_mod_2 <- logistic_reg() %>%
+  set_engine("glm")
+train_wflow_2 <- workflow() %>%
+  add_model(train_mod_2) %>%
+  add_recipe(train_rec_2)
+```
+
+```{r}
+train_fit_2 <- train_wflow_2 %>%
+  fit(data = train)
+tidy(train_fit_2)
+
+```
+
+```{r}
+train_test_2 <- predict(train_fit_2, test, type = "prob")
+glimpse(train_test_2)
+```
+
+```{r}
+library(yardstick)
+roc <- roc_curve(
+  pred_probs,
+  truth = Mag_Price,
+  estimate = .pred_High Qual
+)
+```
 
