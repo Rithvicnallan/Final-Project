@@ -153,11 +153,9 @@ Log_saleprice = -100.93 + 0.0039 * GrLivArea + 1.060 * OverallQual + 0.045 * Yea
 
 ---
 # Table 2
-
 - Trained logistic model where we mutated Magnitude of Price as high and low for log_saleprice is greater or less than mean(log_saleprice) respectively.
 - Settled with using LotFrontage, Neighborhood and MSZoning as our explanatory variables.
 - The ROC curve gave an AUC value of 0.686, which implies a below average predictive power. This suggests that the model tends to give a slightly higher predicted probability for sale prices that are greater than the mean.
-
 &lt;img src="presentation_files/figure-html/unnamed-chunk-9-1.png" width="80%" /&gt;
 
 ```
@@ -166,6 +164,7 @@ Log_saleprice = -100.93 + 0.0039 * GrLivArea + 1.060 * OverallQual + 0.045 * Yea
 ##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
 ## 1 roc_auc binary         0.671
 ```
+
 
 ---
 # Images

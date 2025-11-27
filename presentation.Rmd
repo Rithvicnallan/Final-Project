@@ -16,14 +16,6 @@ output:
       
 ---
 
-```{r install-package, include = FALSE, eval = FALSE}
-# Copy and paste the following code into your console to download and install
-# the `xaringan` package that contains all of the code which allows you 
-# to create presentation slides in Rmarkdown
-install.packages('xaringan')
-```
-
-
 ```{r load-packages, include = FALSE}
 # Add any additional packages you need to this chunk
 library(tidyverse)
@@ -43,6 +35,28 @@ knitr::opts_chunk$set(fig.retina = 3, dpi = 300, fig.width = 6, fig.asp = 0.618,
 sample_submission <- read_csv("data/sample_submission.csv")
 test <- read_csv("data/test.csv")
 train <- read_csv("data/train.csv")
+
+train <- train %>%
+  select(Id,OverallQual,GrLivArea,YearBuilt,Neighborhood,MSZoning,LotFrontage,SalePrice)
+
+train <- train %>%
+  mutate(OverallQual = case_when(
+    OverallQual > 7 ~ "High Qual",
+    OverallQual < 4 ~ "Low Qual",
+    OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
+
+train <- train %>%
+  mutate(
+  OverallQual = fct_relevel(as.factor(OverallQual), "Low Qual", "Med Qual", "High Qual"))
+
+test <- test %>%
+ select(Id,OverallQual,GrLivArea,YearBuilt,Neighborhood,MSZoning,LotFrontage)
+
+test <- test %>%
+  mutate(OverallQual = case_when(
+    OverallQual > 7 ~ "High Qual",
+    OverallQual < 4 ~ "Low Qual",
+    OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
 ```
 
 ```{r include=FALSE}
