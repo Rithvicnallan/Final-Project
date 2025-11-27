@@ -49,8 +49,6 @@ class: center, middle
 
 # Data Overview:
 
-- Data set provided by public competition hosted by kaggle with over 950,000 entries.
-
 - Involves 79 explanatory variables which serves as an indicator of common features of houses in Iowa during the 4 year period of 2006 to 2010.
 
 - This data set is compiled by Dean De Cock for data science education purposes as a modern alternative of the Boston Housing data set.
@@ -81,19 +79,13 @@ class: inverse, middle, center
 
 ---
 
-# Possible limiting factors 
+# Methodology 
 
-You can use plain text
+- Used tidyverse packages to filter out variables categorized as either structural, location and amenities. Confirmed their validity by tracking missing values.
 
-- or bullet points
+- As we are provided with a training and testing data frame, we started with the training set and compared filtered variables with the Sale Price.
 
-.pull-left[
-or text in two columns `\(^*\)`
-]
-.pull-right[
-- like
-- this
-]
+- We mutated variable log_saleprice as our general dependent variable as it provided a more symmetric distribution hence supports our linear model assumption.
 
 .footnote[
 [*] And add footnotes
@@ -129,58 +121,50 @@ or text in two columns `\(^*\)`
 
 If you want to generate a table, make sure it is in the HTML format (instead of Markdown or other formats), e.g.,
 
+
+
+Log_saleprice = -100.93 + 0.0039 * GrLivArea + 1.060 * OverallQual + 0.045 * YearBuilt
+- Made this a logistic value, as we have mutated the log_saleprice into a categorical variable for a better visual representation of our prediction.
+- We limited the amount of variables in our regression model to prevent overfitting.
+
 &lt;table&gt;
  &lt;thead&gt;
   &lt;tr&gt;
-   &lt;th style="text-align:right;"&gt; Sepal.Length &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; Sepal.Width &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; Petal.Length &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; Petal.Width &lt;/th&gt;
-   &lt;th style="text-align:left;"&gt; Species &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; std.error &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; p.value &lt;/th&gt;
   &lt;/tr&gt;
  &lt;/thead&gt;
 &lt;tbody&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 5.1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.2 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; setosa &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -100.9333535 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.6100778 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -13.263117 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 4.9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.2 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; setosa &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; GrLivArea &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0038811 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0003008 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 12.902664 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 4.7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.2 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; setosa &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; OverallQual &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0595593 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.1153053 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 9.189162 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 4.6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.2 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; setosa &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 5.0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.2 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; setosa &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 5.4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.4 &lt;/td&gt;
-   &lt;td style="text-align:left;"&gt; setosa &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; YearBuilt &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0449361 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.0038252 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 11.747419 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;

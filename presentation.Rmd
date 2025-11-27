@@ -231,10 +231,73 @@ ggplot(penguins, aes(x = bill_length_mm, y = species, color = species)) +
 
 # Tables
 
-If you want to generate a table, make sure it is in the HTML format (instead of Markdown or other formats), e.g.,
 
-```{r iris-table, echo = FALSE}
-kable(head(iris), format = "html")
+```{r include=FALSE}
+sample_submission <- read_csv("data/sample_submission.csv")
+test <- read_csv("data/test.csv")
+train <- read_csv("data/train.csv")
+train <- train %>%
+  mutate(
+    # log-transform target
+    log_saleprice = log(SalePrice),
+  )
+train <- train %>%
+ mutate(log_avg_price = mean(log_saleprice))
+
+sample_submission <- sample_submission %>%
+ mutate(log_saleprice = log(SalePrice))
+
+sample_submission <- sample_submission %>%
+ mutate(log_avg_price = mean(log_saleprice))
+
+train <- train %>%
+  mutate(Mag_Price = case_when(
+    log_saleprice > log_avg_price ~ "High",
+    log_saleprice < log_avg_price ~ "Low"),
+    Mag_Price = fct_relevel(Mag_Price, "Low", "High"))
+
+sample_submission <- sample_submission %>%
+  mutate(Mag_Price = case_when(
+    log_saleprice > log_avg_price ~ "High",
+    log_saleprice < log_avg_price ~ "Low"),
+    Mag_Price = fct_relevel(Mag_Price, "Low", "High"))
+train_rec_2 <- recipe(
+  Mag_Price ~ GrLivArea + OverallQual + YearBuilt,
+  data = train) %>%
+  step_dummy(all_nominal_predictors())
+train_mod_2 <- logistic_reg() %>%
+  set_engine("glm")
+train_wflow_2 <- workflow() %>%
+  add_model(train_mod_2) %>%
+  add_recipe(train_rec_2)
+train_fit_2 <- train_wflow_2 %>%
+  fit(data = train)
+tidy(train_fit_2)
+train_test_2 <- predict(train_fit_2, test, type = "prob") %>%
+  bind_cols(sample_submission )
+glimpse(train_test_2)
+roc <- roc_curve(
+  train_test_2,
+  truth = Mag_Price,
+  .pred_High,
+  event_level = "second"
+)
+autoplot(roc)
+roc_auc(
+  train_test_2,
+  truth = Mag_Price,
+  .pred_High,
+  event_level = "second"
+)
+```
+
+Log_saleprice = -100.93 + 0.0039 * GrLivArea + 1.060 * OverallQual + 0.045 * YearBuilt
+- Made this a logistic value, as we have mutated the log_saleprice into a categorical variable for a better visual representation of our prediction.
+- We limited the amount of variables in our regression model to prevent overfitting.
+
+```{r, echo = FALSE}
+df <- tidy(train_fit_2)
+kable(df, format = "html")
 ```
 
 ---
