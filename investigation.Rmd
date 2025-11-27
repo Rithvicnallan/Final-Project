@@ -226,51 +226,35 @@ summary(mod2)$adj.r.squared
 ```
 
 
-```{r}
-train_rec_1 <- recipe(
-  log_saleprice ~ GrLivArea + OverallQual + YearBuilt,
-  data = train) %>%
-  step_unknown(all_nominal_predictors()) %>%
-  step_dummy(all_nominal_predictors())
-train_mod_1 <- linear_reg() %>%
-  set_engine("lm")
-train_wflow_1 <- workflow() %>%
-  add_model(train_mod_1) %>%
-  add_recipe(train_rec_1)
-```
 
-```{r}
-train_fit_1 <- train_wflow_1 %>%
-  fit(data = train)
-tidy(train_fit_1)
-
-```
-
-```{r}
-train_test_1 <- predict(train_fit_1, test, type = "numeric") %>%
-  bind_cols(test)
-glimpse(train_test_1)
 
 train <- train%>%
  mutate(log_avg_price = mean(log_saleprice))
-```
 
 ```{r}
+train <- train%>%
+ mutate(log_avg_price = mean(log_saleprice))
+
+sample_submission <- sample_submission %>%
+ mutate(log_saleprice = log(SalePrice))
+
+sample_submission <- sample_submission %>%
+ mutate(log_avg_price = mean(log_saleprice))
+
 train <- train %>%
   mutate(Mag_Price = case_when(
-    log_saleprice > log_avg_price ~ "High Qual",
-    log_saleprice < log_avg_price ~ "Low Qual"),
-    Mag_Price = fct_relevel(Mag_Price, "Low Qual", "High Qual"))
-train
+    log_saleprice > log_avg_price ~ "High",
+    log_saleprice < log_avg_price ~ "Low"),
+    Mag_Price = fct_relevel(Mag_Price, "Low", "High"))
+
+sample_submission <- sample_submission %>%
+  mutate(Mag_Price = case_when(
+    log_saleprice > log_avg_price ~ "High",
+    log_saleprice < log_avg_price ~ "Low"),
+    Mag_Price = fct_relevel(Mag_Price, "Low", "High"))
+
 ```
 
-```{r}
-test <- test %>%
-  mutate(Mag_Price = case_when(
-    log_saleprice > log_avg_price ~ "High Qual",
-    log_saleprice < log_avg_price ~ "Low Qual"),
-    Mag_Price = fct_relevel(Mag_Price, "Low Qual", "High Qual"))
-```
 
 
 ```{r}
@@ -293,16 +277,27 @@ tidy(train_fit_2)
 ```
 
 ```{r}
-train_test_2 <- predict(train_fit_2, test, type = "prob")
+train_test_2 <- predict(train_fit_2, test, type = "prob") %>%
+  bind_cols(sample_submission )
 glimpse(train_test_2)
 ```
 
 ```{r}
-library(yardstick)
 roc <- roc_curve(
-  pred_probs,
+  train_test_2,
   truth = Mag_Price,
-  estimate = .pred_High Qual
+  .pred_High,
+  event_level = "second"
+)
+autoplot(roc)
+```
+
+```{r}
+roc_auc(
+  train_test_2,
+  truth = Mag_Price,
+  .pred_High,
+  event_level = "second"
 )
 ```
 
