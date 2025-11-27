@@ -43,12 +43,12 @@ sum(is.na(sample_submission))
 # Cleaning train
 
 train <- train %>%
-  select(Id,MSZoning,LotArea,Neighborhood,Utilities,OverallCond,SalePrice)
+  select(Id,OverallQual,GrLivArea,YearBuilt,Neighborhood,MSZoning,LotFrontage,SalePrice)
 
 train %>%
   summarise(across(everything(), ~n_distinct(.x))) %>%
   select(where(~.x == 0))
-train
+
 # demonstrates that there are no columns with no arguments, hence this data frame must have no useless columns.
 ```
 
@@ -56,7 +56,7 @@ train
 # Cleaning test
 
 test <- test %>%
- select(Id,MSZoning,LotArea,Neighborhood,Utilities,OverallCond)
+ select(Id,OverallQual,GrLivArea,YearBuilt,Neighborhood,MSZoning,LotFrontage)
 
 test %>%
   summarise(across(everything(), ~n_distinct(.x))) %>%
@@ -68,7 +68,7 @@ test %>%
 # We have worked out that the mean price and median price is the same to 3 significance figure accuracy, this suggests that the distribution of sales price for housing could be approximated to a normal distribution.
 
 ```{r}
-train
+
 train <- train %>%
   mutate(
     # log-transform target
@@ -91,16 +91,31 @@ ggplot(train, aes(x = log_saleprice)) +
 #The raw SalePrice distribution was highly right-skewed. We applied a natural log transformation, which produced a more symmetric distribution and better supported linear model assumptions.
 
 ```{r}
-# investigating correlation between SalePrice and LotArea
-train_price_clean %>%
-  ggplot(aes(
-    x = LotArea,
-    y = log_saleprice)) +
-  geom_point(color = "red") +
-  geom_smooth(method = lm) +
+train <- train %>%
+  mutate(OverallQual = case_when(
+    OverallQual > 7 ~ "High Qual",
+    OverallQual < 4 ~ "Low Qual",
+    OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
+```
+
+```{r}
+train <- train %>%
+  mutate(
+  OverallQual = fct_relevel(as.factor(OverallQual), "Low Qual", "Med Qual", "High Qual"))
+```
+
+# In our Log Sale Price Against Median Quality plot, there seems to be an overall trend from quality equals 2 to 10, with an anomoly at 1. By counting how many data points were given for each score, it is clear that the anomoly is a cause due to lack of data, hence unreliable. It is difficult to assume a general correlation for scores with few data points, where scores with much data points has suggested that the SalePrice does not increase, at least not significantly due to the quality assessed.
+
+```{r}
+
+#OVERALLQUAL
+
+ggplot(train, aes(x = factor(OverallQual), y = log_saleprice)) +
+  geom_boxplot(fill = "#6AAEDF") +
+  theme_minimal() +
   labs(
-    title = "Relationship between Property Area and Log Sale Price",
-    x = "Total Property Area (sq ft)",
+    title = "log(SalePrice) by Overall Quality",
+    x = "Overall Quality",
     y = "log(SalePrice)"
   )
 ```
@@ -108,63 +123,67 @@ train_price_clean %>%
 # From our scatter point plot when adjusted to standard error, we can see that there is a correlation visually between SalePrices and LotArea, predicting a possible dependency. The standard error increases as we approach greater values in LotArea and SalePrices, which suggests possible outliers, but also due to the lack of data.
 
 ```{r}
-ggplot(train_price_clean, aes(x = GrLivArea, y = log_saleprice)) +
-  geom_point(alpha = 0.25) +
-  geom_smooth(method = "lm", se = FALSE) +
+
+# GRLIVAREA
+
+ggplot(train, aes(x = GrLivArea, y = log_saleprice)) +
+  geom_point(alpha = 0.35) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  theme_minimal() +
   labs(
-    title = "Relationship between Living Area and Log Sale Price",
-    x = "Above-ground living area (sq ft)",
+    title = "log(SalePrice) vs Above-Ground Living Area",
+    x = "GrLivArea (sq ft)",
     y = "log(SalePrice)"
   )
 
 ```
 
 ```{r}
-medians <- train_price_clean %>%
-  group_by(OverallQual_fctr) %>%
-  summarise(median_price = median(log_saleprice, na.rm = TRUE))
 
-# Jitter plot + median line
-ggplot(train_price_clean, aes(x = OverallQual_fctr, y = log_saleprice)) +
-  geom_jitter(alpha = 0.25, width = 0.2, color = "steelblue") +
-  geom_line(data = medians,
-            aes(x = OverallQual_fctr, y = median_price, group = 1),
-            color = "red", linewidth = 1.2) +
-  geom_point(data = medians,
-             aes(x = OverallQual_fctr, y = median_price),
-             color = "red", size = 3) +
+# YEARBUILT
+
+ggplot(train, aes(x = YearBuilt, y = log_saleprice)) +
+  geom_point(alpha = 0.35) +
+  geom_smooth(method = "loess", se = FALSE, color = "darkgreen") +
+  theme_minimal() +
   labs(
-    title = "Log Sale Price by Overall Quality with Median Trend Line",
-    x = "Overall Quality (1–10)",
+    title = "log(SalePrice) vs Year Built",
+    x = "Year Built",
     y = "log(SalePrice)"
   )
 
-train_price_clean %>%
-  count(OverallQual_fctr)
 ```
 
 ```{r}
-train <- train %>%
-  mutate(OverallCond = case_when(
-    OverallCond > 7 ~ "High Cond",
-    OverallCond < 4 ~ "Low Cond",
-    OverallCond > 3 & OverallCond < 8  ~ "Med Cond"))
+
+#OverallQual
+
+ggplot(train, aes(x = OverallQual, y = log_saleprice)) +
+  geom_boxplot(fill = "#69b3a2") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) by OverallQual Category",
+    x = "Overall Quality Category",
+    y = "log(SalePrice)"
+  )
+
 ```
 
 ```{r}
-train %>%
-  mutate(
-  OverallCond = fct_relevel(as.factor(OverallCond), "Low Cond", "Med Cond", "High Cond")) %>%
-  ggplot(aes(x = OverallCond,
-             y = log_saleprice)) +
-  geom_boxplot() +
-  coord_flip() +
-  labs(x = "Overall Condition Categorically",
-       y = "log(saleprice)",
-       title = "log(saleprice) against the Overall Condition")
-```
 
-# In our Log Sale Price Against Median Quality plot, there seems to be an overall trend from quality equals 2 to 10, with an anomoly at 1. By counting how many data points were given for each score, it is clear that the anomoly is a cause due to lack of data, hence unreliable. It is difficult to assume a general correlation for scores with few data points, where scores with much data points has suggested that the SalePrice does not increase, at least not significantly due to the quality assessed.
+#YearBuilt
+
+ggplot(train, aes(x = YearBuilt, y = log_saleprice)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "loess", se = FALSE, color = "darkgreen") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) vs Year Built",
+    x = "Year Built",
+    y = "log(SalePrice)"
+  )
+
+```
 
 ```{r}
 train_price_clean %>%
@@ -225,10 +244,10 @@ ggplot(diag_df, aes(fitted, resid)) +
 
 ```{r}
 group3 <- c("MSZoning", "LotArea","Neighborhood")
-group2 <- c("Utilities", "OverallCond")
+group2 <- c("YearBuilt", "OverallQual")
 
 # Model using 2-variable group
-model2 <- lm(log_saleprice ~ Utilities + OverallCond, data = train_price)
+model2 <- lm(log_saleprice ~ YearBuilt + OverallQual, data = train_price)
 
 # Model using 3-variable group
 model3 <- lm(price ~ var3 + var4 + var5, data = df)
