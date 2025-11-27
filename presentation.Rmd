@@ -265,44 +265,48 @@ ggplot(train, aes(x = LotFrontage, y = log_saleprice)) +
 ```
 
 ---
+#Predictive Modelling 
 
-## Plot and text
-
-.pull-left[
-- Some text
-- goes here
-]
-.pull-right[
-```{r warning=FALSE, out.width="100%", fig.width=4, echo=FALSE}
-# see how I changed out.width and fig.width from defaults
-# to make the figure bigger
-ggplot(penguins, aes(x = bill_length_mm, y = species, color = species)) +
-  geom_boxplot() +
-  theme_minimal()
+Since our target variable is whether the price is High or Low, we will compare both the groups above to determine which influences the prices more. As the outcome is binary, we use logistic regression.
+```{r}
+log_model <- logistic_reg() %>% set_engine("glm")
 ```
-]
-
----
-
-# Tables
-
-
-```{r include=FALSE}
-
+We created two model workflows:
+.pull-left[
+Group A
+```{r}
 rec_A <- recipe(
-  Mag_Price ~ GrLivArea + OverallQual + YearBuilt,
+  Mag_Price ~ 
+    GrLivArea + OverallQual + YearBuilt,
   data = train
 ) %>%
   step_dummy(all_nominal_predictors())
 
-# logistic model
-mod_A <- logistic_reg() %>%
-  set_engine("glm")
-
 wf_A <- workflow() %>%
-  add_model(mod_A) %>%
+  add_model(log_model) %>%
   add_recipe(rec_A)
+```
+]
+.pull-right[
+Group B
+```{r}
+rec_B <- recipe(
+  Mag_Price ~ 
+    Neighborhood + MSZoning + LotFrontage,
+  data = train
+) %>%
+  step_unknown(all_nominal_predictors()) %>%
+  step_dummy(all_nominal_predictors())
 
+wf_B <- workflow() %>%
+  add_model(log_model) %>%
+  add_recipe(rec_B)
+```
+]
+---
+.pull-left[
+### Group A
+```{r}
 fit_A <- wf_A %>%
   fit(data = train)
 
@@ -310,21 +314,11 @@ pred_A_test <- predict(fit_A, new_data = test, type = "prob") %>%
   bind_cols(test %>% select(Id))
 
 head(pred_A_test)
-
-rec_B <- recipe(
-  Mag_Price ~ Neighborhood + MSZoning + LotFrontage,
-  data = train
-) %>%
-  step_unknown(all_nominal_predictors()) %>%
-  step_dummy(all_nominal_predictors())
-
-mod_B <- logistic_reg() %>%
-  set_engine("glm")
-
-wf_B <- workflow() %>%
-  add_model(mod_B) %>%
-  add_recipe(rec_B)
-
+```
+]
+.pull-right[
+### Group B
+```{r, message=FALSE, warning=FALSE}
 fit_B <- wf_B %>%
   fit(data = train)
 
@@ -333,7 +327,12 @@ pred_B_test <- predict(fit_B, new_data = test, type = "prob") %>%
 
 head(pred_B_test)
 
-# truth for test set
+```
+]
+---
+## Comparing the Models
+
+```{r, echo=FALSE}
 truth_test <- sample_submission %>%
   select(Id, Mag_Price)
 
@@ -342,8 +341,6 @@ roc_data_A <- pred_A_test %>%
 
 roc_data_B <- pred_B_test %>%
   inner_join(truth_test, by = "Id")
-
-names(roc_data_A)
 
 # Group A ROC & AUC
 roc_A <- roc_data_A %>%
@@ -359,11 +356,19 @@ roc_B <- roc_data_B %>%
 auc_B <- roc_data_B %>%
   roc_auc(truth = Mag_Price, .pred_High, event_level = "second")
 
-auc_A
-auc_B
+```
 
-library(ggplot2)
 
+.pull-left[
+- AUC of Group A is 0.686
+- AUC of Group B is 0.657
+
+While we cannot conclude with confidence that Group A is a superior set of predictors, it is however, in comparison to Group B a marginally better predictor.
+]
+.pull-right.wide[
+```{r warning=FALSE, echo=FALSE, out.width="300%"}
+# see how I changed out.width and fig.width from defaults
+# to make the figure bigger
 bind_rows(
   roc_A %>% mutate(group = "Group A (house features)"),
   roc_B %>% mutate(group = "Group B (location)")
@@ -379,83 +384,19 @@ bind_rows(
     y = "Sensitivity (True Positive Rate)",
     colour = "Model"
   )
-
 ```
-
-Log_saleprice = -100.93 + 0.0039 * GrLivArea + 1.060 * OverallQual + 0.045 * YearBuilt
-We have fitted a generalized linear model, in this case specifically a logistic model involving several predictors, GrLivArea, OverallQual and YearBuilt to model the Mag_Price.
-We limited the amount of variables in our regression model to prevent overfitting.
-
-```{r, echo = FALSE}
-df <- tidy(train_fit_2)
-kable(df, format = "html")
-```
-
+]
 ---
-# Table 2
-Mag_Price is either defined as High or Low by whether it is greater or lesser than the mean log_saleprice respectively.
-The ROC curve gave an AUC value of 0.686, which implies a below average predictive power. This suggests that the model tends to give a slightly higher predicted probability for sale prices that are greater than the mean.
-```{r, echo = FALSE}
-roc <- roc_curve(
-  train_test_2,
-  truth = Mag_Price,
-  .pred_High,
-  event_level = "second"
-)
-autoplot(roc)
-roc_auc(
-  train_test_2,
-  truth = Mag_Price,
-  .pred_High,
-  event_level = "second"
-)
-```
+### Why do house features beat location when predicting prices?
 
+- Group A variables are mostly numeric or low-cardinality categorical
 
----
-# Images
+- Group A achieves better performance with fewer, stronger predictors.
 
-```{r castle, echo = FALSE, out.width = "55%", fig.align = "center", fig.cap = "Image credit: Photo by Jörg Angeli on Unsplash."}
-include_graphics("img/edinburgh-castle.jpg")
-```
+- Group B required many dummy variables
 
-Or you can also include a full page image. See next slide.
+### Conclusion
+Our analysis suggests that both groups can be used to predict house prices to a limited extent.
 
----
-
-
-class: inverse, center, middle
-background-image: url(img/edinburgh-castle.jpg)
-background-size: contain
----
-
-# Math Expressions
-
-You can write LaTeX math expressions inside a pair of dollar signs, e.g. &#36;\alpha+\beta$ renders $\alpha+\beta$. You can use the display style with double dollar signs:
-
-```
-$$\bar{X}=\frac{1}{n}\sum_{i=1}^nX_i$$
-```
-
-$$\bar{X}=\frac{1}{n}\sum_{i=1}^nX_i$$
-
-Limitations:
-
-1. The source code of a LaTeX math expression must be in one line, unless it is inside a pair of double dollar signs, in which case the starting `$$` must appear in the very beginning of a line, followed immediately by a non-space character, and the ending `$$` must be at the end of a line, led by a non-space character;
-
-1. There should not be spaces after the opening `$` or before the closing `$`.
-
-1. Math does not work on the title slide (see [#61](https://github.com/yihui/xaringan/issues/61) for a workaround).
-
----
-
-# Feeling adventurous?
-
-- Want to find out more about `xaringan`? See https://slides.yihui.name/xaringan/#1.
-
-- You are welcome to use the default styling of the slides. In fact, that's what I expect majority of you will do. You will differentiate yourself with the content of your presentation.
-
-- But some of you might want to play around with slide styling. The 
-`xaringanthemer` provides some solutions for this that: https://pkg.garrickadenbuie.com/xaringanthemer.
-
-- And if you want more bells and whistles, there is also `xaringanExtra`: https://pkg.garrickadenbuie.com/xaringanExtra.
+### References
+"House Prices - Advanced Regression Techniques." Link - https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/overview

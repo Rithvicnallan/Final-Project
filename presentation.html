@@ -84,139 +84,128 @@ Location-related variables: Neighborhood, MSZoning, LotFrontage
 &lt;img src="presentation_files/figure-html/unnamed-chunk-5-1.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-5-2.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-5-3.png" width="32%" /&gt;
 
 ---
+#Predictive Modelling 
 
-## Plot and text
+Since our target variable is whether the price is High or Low, we will compare both the groups above to determine which influences the prices more. As the outcome is binary, we use logistic regression.
 
+``` r
+log_model &lt;- logistic_reg() %&gt;% set_engine("glm")
+```
+We created two model workflows:
 .pull-left[
-- Some text
-- goes here
+Group A
+
+``` r
+rec_A &lt;- recipe(
+  Mag_Price ~ 
+    GrLivArea + OverallQual + YearBuilt,
+  data = train
+) %&gt;%
+  step_dummy(all_nominal_predictors())
+
+wf_A &lt;- workflow() %&gt;%
+  add_model(log_model) %&gt;%
+  add_recipe(rec_A)
+```
 ]
 .pull-right[
-&lt;img src="presentation_files/figure-html/unnamed-chunk-6-1.png" width="100%" /&gt;
+Group B
+
+``` r
+rec_B &lt;- recipe(
+  Mag_Price ~ 
+    Neighborhood + MSZoning + LotFrontage,
+  data = train
+) %&gt;%
+  step_unknown(all_nominal_predictors()) %&gt;%
+  step_dummy(all_nominal_predictors())
+
+wf_B &lt;- workflow() %&gt;%
+  add_model(log_model) %&gt;%
+  add_recipe(rec_B)
+```
 ]
-
 ---
+.pull-left[
+### Group A
 
-# Tables
+``` r
+fit_A &lt;- wf_A %&gt;%
+  fit(data = train)
 
+pred_A_test &lt;- predict(fit_A, new_data = test, type = "prob") %&gt;%
+  bind_cols(test %&gt;% select(Id))
 
-
-
-Log_saleprice = -100.93 + 0.0039 * GrLivArea + 1.060 * OverallQual + 0.045 * YearBuilt
-We have fitted a generalized linear model, in this case specifically a logistic model involving several predictors, GrLivArea, OverallQual and YearBuilt to model the Mag_Price.
-We limited the amount of variables in our regression model to prevent overfitting.
-
-&lt;table&gt;
- &lt;thead&gt;
-  &lt;tr&gt;
-   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; estimate &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; std.error &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; statistic &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; p.value &lt;/th&gt;
-  &lt;/tr&gt;
- &lt;/thead&gt;
-&lt;tbody&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -135.5288587 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 398.2255488 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -0.3403319 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.7336066 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:left;"&gt; GrLivArea &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0045808 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0002872 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15.9509392 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000000 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:left;"&gt; YearBuilt &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0584273 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0036560 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15.9810268 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0000000 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:left;"&gt; OverallQual_Med.Qual &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 13.2252024 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 398.1578528 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0332160 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.9735024 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:left;"&gt; OverallQual_High.Qual &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 15.4069136 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 398.1582440 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.0386955 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.9691332 &lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
----
-# Table 2
-Mag_Price is either defined as High or Low by whether it is greater or lesser than the mean log_saleprice respectively.
-The ROC curve gave an AUC value of 0.686, which implies a below average predictive power. This suggests that the model tends to give a slightly higher predicted probability for sale prices that are greater than the mean.
-&lt;img src="presentation_files/figure-html/unnamed-chunk-9-1.png" width="80%" /&gt;
-
-```
-## # A tibble: 1 × 3
-##   .metric .estimator .estimate
-##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
-## 1 roc_auc binary         0.686
+head(pred_A_test)
 ```
 
-
----
-# Images
-
-&lt;div class="figure" style="text-align: center"&gt;
-&lt;img src="img/edinburgh-castle.jpg" alt="Image credit: Photo by Jörg Angeli on Unsplash." width="55%" /&gt;
-&lt;p class="caption"&gt;Image credit: Photo by Jörg Angeli on Unsplash.&lt;/p&gt;
-&lt;/div&gt;
-
-Or you can also include a full page image. See next slide.
-
----
-
-
-class: inverse, center, middle
-background-image: url(img/edinburgh-castle.jpg)
-background-size: contain
----
-
-# Math Expressions
-
-You can write LaTeX math expressions inside a pair of dollar signs, e.g. &amp;#36;\alpha+\beta$ renders `\(\alpha+\beta\)`. You can use the display style with double dollar signs:
-
 ```
-$$\bar{X}=\frac{1}{n}\sum_{i=1}^nX_i$$
+## # A tibble: 6 × 3
+##   .pred_Low .pred_High    Id
+##       &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;
+## 1     0.974     0.0260  1461
+## 2     0.860     0.140   1462
+## 3     0.137     0.863   1463
+## 4     0.144     0.856   1464
+## 5     0.106     0.894   1465
+## 6     0.151     0.849   1466
+```
+]
+.pull-right[
+### Group B
+
+``` r
+fit_B &lt;- wf_B %&gt;%
+  fit(data = train)
+
+pred_B_test &lt;- predict(fit_B, new_data = test, type = "prob") %&gt;%
+  bind_cols(test %&gt;% select(Id))
+
+head(pred_B_test)
 ```
 
-`$$\bar{X}=\frac{1}{n}\sum_{i=1}^nX_i$$`
-
-Limitations:
-
-1. The source code of a LaTeX math expression must be in one line, unless it is inside a pair of double dollar signs, in which case the starting `$$` must appear in the very beginning of a line, followed immediately by a non-space character, and the ending `$$` must be at the end of a line, led by a non-space character;
-
-1. There should not be spaces after the opening `$` or before the closing `$`.
-
-1. Math does not work on the title slide (see [#61](https://github.com/yihui/xaringan/issues/61) for a workaround).
-
+```
+## # A tibble: 6 × 3
+##      .pred_Low .pred_High    Id
+##          &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;
+## 1 0.950            0.0504  1461
+## 2 0.822            0.178   1462
+## 3 0.0749           0.925   1463
+## 4 0.0669           0.933   1464
+## 5 0.0000000137     1.000   1465
+## 6 0.0728           0.927   1466
+```
+]
 ---
+## Comparing the Models
 
-# Feeling adventurous?
 
-- Want to find out more about `xaringan`? See https://slides.yihui.name/xaringan/#1.
 
-- You are welcome to use the default styling of the slides. In fact, that's what I expect majority of you will do. You will differentiate yourself with the content of your presentation.
 
-- But some of you might want to play around with slide styling. The 
-`xaringanthemer` provides some solutions for this that: https://pkg.garrickadenbuie.com/xaringanthemer.
+.pull-left[
+- AUC of Group A is 0.686
+- AUC of Group B is 0.657
 
-- And if you want more bells and whistles, there is also `xaringanExtra`: https://pkg.garrickadenbuie.com/xaringanExtra.
+While we cannot conclude with confidence that Group A is a superior set of predictors, it is however, in comparison to Group B a marginally better predictor.
+]
+.pull-right.wide[
+&lt;img src="presentation_files/figure-html/unnamed-chunk-12-1.png" width="300%" /&gt;
+]
+---
+### Why do house features beat location when predicting prices?
+
+- Group A variables are mostly numeric or low-cardinality categorical
+
+- Group A achieves better performance with fewer, stronger predictors.
+
+- Group B required many dummy variables
+
+### Conclusion
+Our analysis suggests that both groups can be used to predict house prices to a limited extent.
+
+### References
+"House Prices - Advanced Regression Techniques." Link - https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/overview
+---
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
