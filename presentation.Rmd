@@ -90,19 +90,13 @@ class: inverse, middle, center
 
 ---
 
-# Possible limiting factors 
+# Methodology 
 
-You can use plain text
+- Used tidyverse packages to filter out variables categorized as either structural, location and amenities. Confirmed their validity by tracking missing values.
 
-- or bullet points
+- As we are provided with a training and testing data frame, we started with the training set and compared filtered variables with the Sale Price.
 
-.pull-left[
-or text in two columns $^*$
-]
-.pull-right[
-- like
-- this
-]
+- We mutated variable log_saleprice as our general dependent variable as it provided a more symmetric distribution hence supports our linear model assumption.
 
 .footnote[
 [*] And add footnotes
