@@ -58,17 +58,9 @@ class: center, middle
 ## Research Question: What features hold most influence over house prices:
 ---
 
-class: inverse, center, middle
+# Data Overview:
 
-# Overview of Data:
-
----
-
-# Data Overview
-
-- Data set provided by public competition hosted by kaggle with over 950,000 entries.
-
-- Involves 79 explanatory variables which serves as an indicator of common features of houses in Lowa during the 4 year period of 2006 to 2010.
+- Involves 79 explanatory variables which serves as an indicator of common features of houses in Iowa during the 4 year period of 2006 to 2010.
 
 - This data set is compiled by Dean De Cock for data science education purposes as a modern alternative of the Boston Housing data set.
 
@@ -118,16 +110,6 @@ or text in two columns $^*$
 
 ---
 
-# Code
-
-```{r}
-
-```
-
----
-
-# Plots
-
 ```{r recode-species, echo = FALSE}
 # In this chunk I'm doing a bunch of analysis that I don't want to present 
 # in my slides. But I need the resulting data frame for a plot I want to present.
@@ -161,6 +143,8 @@ train <- train %>%
   )
 ```
 
+# Group A (House Features)
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold', out.width='32%'}
 # Code hidden with echo = FALSE
 # Uses modified iris dataset from previous chunk
@@ -179,7 +163,7 @@ ggplot(train, aes(x = GrLivArea, y = log_saleprice)) +
   geom_smooth(method = "lm", se = FALSE, color = "blue") +
   theme_minimal() +
   labs(
-    title = "log(SalePrice) vs Above-Ground Living Area",
+    title = "log(SalePrice) vs Living Area",
     x = "GrLivArea (sq ft)",
     y = "log(SalePrice)"
   )
@@ -193,7 +177,11 @@ ggplot(train, aes(x = YearBuilt, y = log_saleprice)) +
     x = "Year Built",
     y = "log(SalePrice)"
   )
+```
+---
+# Group B (Location Variables)
 
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold', out.width='32%'}
 ggplot(train, aes(
       x = reorder(Neighborhood, log_saleprice, FUN = median),
       y = log_saleprice)) +
