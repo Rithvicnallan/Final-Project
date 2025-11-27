@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Presentation title</title>
+    <title>Predicting House Prices</title>
     <meta charset="utf-8" />
     <meta name="author" content="Final Project Duo   Terry and Rithvic" />
     <meta name="date" content="2025-11-27" />
@@ -13,10 +13,10 @@
 class: center, middle, inverse, title-slide
 
 .title[
-# Presentation title
+# Predicting House Prices
 ]
 .subtitle[
-## Presentation subtitle (if any)
+## In Ames,Iowa
 ]
 .author[
 ### Final Project Duo <br> Terry and Rithvic
@@ -42,62 +42,37 @@ class: center, middle, inverse, title-slide
 
 
 
-class: center, middle
-
-## Research Question: What features hold most influence over house prices:
----
-
 # Data Overview:
 
-- Data set provided by public competition hosted by kaggle with over 950,000 entries.
+Our project uses three related datasets derived from the Ames Housing data. After cleaning the data we selected our variables and split them into two groups, Group A (House Features) and Group B (Location Variables).
 
-- Involves 79 explanatory variables which serves as an indicator of common features of houses in Iowa during the 4 year period of 2006 to 2010.
+We engineered two new variables:
 
-- This data set is compiled by Dean De Cock for data science education purposes as a modern alternative of the Boston Housing data set.
+log_saleprice — the natural log of SalePrice to reduce skew and support linear modelling
 
-- Our explanatory variables can be further categorised into subsets noted as structural, location and amenities. 
-
-- Our dependent variable would be the Sale Price, this data set allows investigation on correlation between our explanatory variables and Sale Prices.
-
+&lt;img src="presentation_files/figure-html/unnamed-chunk-2-1.png" width="48%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-2-2.png" width="48%" /&gt;
 ---
 
-class: inverse, middle, center
+Mag_Price — a binary classification (“High” / “Low”) indicating whether a home’s log-price is above or below the training-set mean
 
-# Brief Introduction
+We also recoded OverallQual into three descriptive quality categories (“Low”, “Med”, “High”) for clearer interpretation.
 
----
+To support our comparison of house features vs. location factors, we retained the following predictors:
 
-# Background Informations &amp; Objectives
+House-related variables: OverallQual, GrLivArea, YearBuilt
 
-- Housing prices fluctuates due to multiple factors and to decide an ideal property is to decide on satisfactory prices involving necessary and preferred features.
+Location-related variables: Neighborhood, MSZoning, LotFrontage
 
-- Find the variables which shows correlation to the sale prices which gives insight on what should be of consideration when purchasing properties in Ames.
-
-- This is a period where housing prices endures unpredictable changes due to the financial crisis of 2008.
-
-- Investigating this period allows us to find an unique perspective on housing market which was enduring both the highest and lowest point prior and after the crash respectively. Allowing insight to the variable which is least affected by external influences.
-
-- Encourages more caution in purchasing properties as residence or as property investments
-
----
-
-# Possible limiting factors 
-
-You can use plain text
-
-- or bullet points
-
-.pull-left[
-or text in two columns `\(^*\)`
-]
-.pull-right[
-- like
-- this
-]
-
-.footnote[
-[*] And add footnotes
-]
+|Variable      |Type        |Description                                            |
+|:-------------|:-----------|:------------------------------------------------------|
+|OverallQual   |Categorical |Reclassified overall finish and quality of the home    |
+|GrLivArea     |Numeric     |Living area in square feet                             |
+|YearBuilt     |Numeric     |Year the house was originally built                    |
+|Neighborhood  |Categorical |Residential neighborhood where the home is located     |
+|MSZoning      |Categorical |Zoning classification for land use                     |
+|LotFrontage   |Numeric     |Linear feet of street-connected property frontage      |
+|log_saleprice |Numeric     |Natural log transformation of SalePrice to reduce skew |
+|Mag_Price     |Categorical |Binary label of log_saleprice                          |
 
 ---
 
@@ -105,11 +80,11 @@ or text in two columns `\(^*\)`
 
 # Group A (House Features)
 
-&lt;img src="presentation_files/figure-html/unnamed-chunk-2-1.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-2-2.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-2-3.png" width="32%" /&gt;
+&lt;img src="presentation_files/figure-html/unnamed-chunk-4-1.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-4-2.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-4-3.png" width="32%" /&gt;
 ---
 # Group B (Location Variables)
 
-&lt;img src="presentation_files/figure-html/unnamed-chunk-3-1.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-3-2.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-3-3.png" width="32%" /&gt;
+&lt;img src="presentation_files/figure-html/unnamed-chunk-5-1.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-5-2.png" width="32%" /&gt;&lt;img src="presentation_files/figure-html/unnamed-chunk-5-3.png" width="32%" /&gt;
 
 ---
 
@@ -120,7 +95,7 @@ or text in two columns `\(^*\)`
 - goes here
 ]
 .pull-right[
-&lt;img src="presentation_files/figure-html/unnamed-chunk-4-1.png" width="100%" /&gt;
+&lt;img src="presentation_files/figure-html/unnamed-chunk-6-1.png" width="100%" /&gt;
 ]
 
 ---

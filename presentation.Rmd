@@ -1,6 +1,6 @@
 ---
-title: "Presentation title"
-subtitle: "Presentation subtitle (if any)"
+title: "Predicting House Prices"
+subtitle: "In Ames,Iowa"
 author: "Final Project Duo <br> Terry and Rithvic"
 institute: "University of Edinburgh"
 date: "`r Sys.Date()`"
@@ -53,54 +53,95 @@ style_xaringan(
 )
 ```
 
-class: center, middle
-
-## Research Question: What features hold most influence over house prices:
----
-
 # Data Overview:
 
-- Involves 79 explanatory variables which serves as an indicator of common features of houses in Iowa during the 4 year period of 2006 to 2010.
+Our project uses three related datasets derived from the Ames Housing data. After cleaning the data we selected our variables and split them into two groups, Group A (House Features) and Group B (Location Variables).
 
-- This data set is compiled by Dean De Cock for data science education purposes as a modern alternative of the Boston Housing data set.
+We engineered two new variables:
 
-- Our explanatory variables can be further categorised into subsets noted as structural, location and amenities. 
+log_saleprice — the natural log of SalePrice to reduce skew and support linear modelling
 
-- Our dependent variable would be the Sale Price, this data set allows investigation on correlation between our explanatory variables and Sale Prices.
+```{r, echo=FALSE, fig.show='hold', out.width='48%'}
 
+train <- train %>%
+  mutate(
+    # log-transform target
+    log_saleprice = log(SalePrice),)
+
+# Original SalePrice
+ggplot(train, aes(x = SalePrice)) +
+  geom_histogram(bins = 50) +
+  labs(title = "Distribution of SalePrice")
+
+# Log-transformed SalePrice
+ggplot(train, aes(x = log_saleprice)) +
+  geom_histogram(bins = 50) +
+  labs(title = "Distribution of log(SalePrice)")
+
+
+```
 ---
 
-class: inverse, middle, center
+Mag_Price — a binary classification (“High” / “Low”) indicating whether a home’s log-price is above or below the training-set mean
 
-# Brief Introduction
+We also recoded OverallQual into three descriptive quality categories (“Low”, “Med”, “High”) for clearer interpretation.
 
----
+To support our comparison of house features vs. location factors, we retained the following predictors:
 
-# Background Informations & Objectives
+House-related variables: OverallQual, GrLivArea, YearBuilt
 
-- Housing prices fluctuates due to multiple factors and to decide an ideal property is to decide on satisfactory prices involving necessary and preferred features.
+Location-related variables: Neighborhood, MSZoning, LotFrontage
+```{r, echo=FALSE}
 
-- Find the variables which shows correlation to the sale prices which gives insight on what should be of consideration when purchasing properties in Ames.
+library(knitr)
 
-- This is a period where housing prices endures unpredictable changes due to the financial crisis of 2008.
+data.frame(
+  Variable = c(
+    # Group A — House Features
+    "OverallQual", "GrLivArea", "YearBuilt",
+    
+    # Group B — Location Features
+    "Neighborhood", "MSZoning", "LotFrontage",
+    
+    # Engineered Variables
+    "log_saleprice", "Mag_Price"
+  ),
+  
+  Type = c(
+    # Group A
+    "Categorical",
+    "Numeric",
+    "Numeric",
+    
+    # Group B
+    "Categorical",
+    "Categorical",
+    "Numeric",
+    
+    # Engineered
+    "Numeric",
+    "Categorical"
+  ),
+  
+  Description = c(
+    # Group A descriptions
+    "Reclassified overall finish and quality of the home",
+    "Living area in square feet",
+    "Year the house was originally built",
+    
+    # Group B descriptions
+    "Residential neighborhood where the home is located",
+    "Zoning classification for land use",
+    "Linear feet of street-connected property frontage",
+    
+    # Engineered variable descriptions
+    "Natural log transformation of SalePrice to reduce skew",
+    "Binary label of log_saleprice"
+  )
+) %>%
+  kable()
 
-- Investigating this period allows us to find an unique perspective on housing market which was enduring both the highest and lowest point prior and after the crash respectively. Allowing insight to the variable which is least affected by external influences.
-
-- Encourages more caution in purchasing properties as residence or as property investments
-
----
-
-# Methodology 
-
-- Used tidyverse packages to filter out variables categorized as either structural, location and amenities. Confirmed their validity by tracking missing values.
-
-- As we are provided with a training and testing data frame, we started with the training set and compared filtered variables with the Sale Price.
-
-- We mutated variable log_saleprice as our general dependent variable as it provided a more symmetric distribution hence supports our linear model assumption.
-
-.footnote[
-[*] And add footnotes
-]
+```
 
 ---
 
@@ -129,12 +170,12 @@ test <- test %>%
     OverallQual > 7 ~ "High Qual",
     OverallQual < 4 ~ "Low Qual",
     OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
-
 train <- train %>%
   mutate(
     # log-transform target
     log_saleprice = log(SalePrice),
   )
+
 ```
 
 # Group A (House Features)
