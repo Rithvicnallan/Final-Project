@@ -1,6 +1,6 @@
 ---
-title: "Predicting House Prices"
-subtitle: "In Ames,Iowa"
+title: "Predicting House Prices in Ames,Iowa"
+subtitle: "House features vs Location"
 author: "Final Project Duo <br> Terry and Rithvic"
 institute: "University of Edinburgh"
 date: "`r Sys.Date()`"
@@ -93,11 +93,56 @@ style_xaringan(
 )
 ```
 
-# Data Overview:
+### Data Overview:
 
 Our project uses three related datasets derived from the Ames Housing data. After cleaning the data we selected our variables and split them into two groups, Group A (House Features) and Group B (Location Variables).
 
-We engineered two new variables:
+To support our comparison of house features vs. location factors, we retained the following predictors:
+
+House-related variables: OverallQual, GrLivArea, YearBuilt
+
+Location-related variables: Neighborhood, MSZoning, LotFrontage
+```{r, echo=FALSE}
+
+library(knitr)
+
+data.frame(
+  Variable = c(
+    # Group A — House Features
+    "OverallQual", "GrLivArea", "YearBuilt",
+    
+    # Group B — Location Features
+    "Neighborhood", "MSZoning", "LotFrontage"),
+  
+  Type = c(
+    # Group A
+    "Categorical",
+    "Numeric",
+    "Numeric",
+    
+    # Group B
+    "Categorical",
+    "Categorical",
+    "Numeric"
+  ),
+  
+  Description = c(
+    # Group A descriptions
+    "Reclassified overall finish and quality of the home",
+    "Living area in square feet",
+    "Year the house was originally built",
+    
+    # Group B descriptions
+    "Residential neighborhood where the home is located",
+    "Zoning classification for land use",
+    "Linear feet of street-connected property frontage"
+  )
+) %>%
+  kable()
+
+```
+---
+We also engineered two new variables:
 
 log_saleprice — the natural log of SalePrice to reduce skew and support linear modelling
 
@@ -120,68 +165,12 @@ ggplot(train, aes(x = log_saleprice)) +
 
 
 ```
----
 
 Mag_Price — a binary classification (“High” / “Low”) indicating whether a home’s log-price is above or below the training-set mean
 
 We also recoded OverallQual into three descriptive quality categories (“Low”, “Med”, “High”) for clearer interpretation.
 
-To support our comparison of house features vs. location factors, we retained the following predictors:
 
-House-related variables: OverallQual, GrLivArea, YearBuilt
-
-Location-related variables: Neighborhood, MSZoning, LotFrontage
-```{r, echo=FALSE}
-
-library(knitr)
-
-data.frame(
-  Variable = c(
-    # Group A — House Features
-    "OverallQual", "GrLivArea", "YearBuilt",
-    
-    # Group B — Location Features
-    "Neighborhood", "MSZoning", "LotFrontage",
-    
-    # Engineered Variables
-    "log_saleprice", "Mag_Price"
-  ),
-  
-  Type = c(
-    # Group A
-    "Categorical",
-    "Numeric",
-    "Numeric",
-    
-    # Group B
-    "Categorical",
-    "Categorical",
-    "Numeric",
-    
-    # Engineered
-    "Numeric",
-    "Categorical"
-  ),
-  
-  Description = c(
-    # Group A descriptions
-    "Reclassified overall finish and quality of the home",
-    "Living area in square feet",
-    "Year the house was originally built",
-    
-    # Group B descriptions
-    "Residential neighborhood where the home is located",
-    "Zoning classification for land use",
-    "Linear feet of street-connected property frontage",
-    
-    # Engineered variable descriptions
-    "Natural log transformation of SalePrice to reduce skew",
-    "Binary label of log_saleprice"
-  )
-) %>%
-  kable()
-
-```
 
 ---
 
