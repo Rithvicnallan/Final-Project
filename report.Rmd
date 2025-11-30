@@ -349,5 +349,7 @@ bind_rows(
 
 Although the difference between AUC scores was small, Group A consistently achieved a higher AUC than Group B, suggesting housing features contain slightly stronger predictive information for binary classification of prices. However, the gap was narrow enough that we could not confidently claim housing features are definitively superior predictors—only that, numerically, they seem marginally more effective.
 
+## Conclusion
+As demonstrated by the comparison in AUC, we are certain that there are distinct positive correlations between both housing features and location variables against sale prices. However, we are also certain that they are not sole explanatory variables. We have neglected complex reasoning such as Ames being a college oriented town and the house sales taking place during the height of the 2008 financial crisis where by considering their influence on our variables makes a complicated and more accurate model.
 ## References
 "House Prices - Advanced Regression Techniques." Link - https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/overview
