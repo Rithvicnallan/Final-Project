@@ -1,6 +1,6 @@
 ---
-title: "Project title"
-author: "by Team-Name: User1, User2, User3, User4 & User5"
+title: "Predicting House Prices in Ames,Iowa"
+author: "by Data Science Duo: Terry and Rithvic"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -12,17 +12,68 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r load-lib, include = FALSE}
 library(tidyverse)
+library(readr)
+library(janitor)
+library(tidymodels)
+library(knitr)
 # Add any other libraries here
-
-
-
 ```
 
 
 ```{r load-data, include=FALSE}
 # load your data here and any pre-processing/cleaning 
 #  that you need for your report.
+sample_submission <- read_csv("data/sample_submission.csv")
+test <- read_csv("data/test.csv")
+train <- read_csv("data/train.csv")
 
+train <- train %>%
+  select(Id,OverallQual,GrLivArea,YearBuilt,Neighborhood,MSZoning,LotFrontage,SalePrice)
+
+train <- train %>%
+  mutate(OverallQual = case_when(
+    OverallQual > 7 ~ "High Qual",
+    OverallQual < 4 ~ "Low Qual",
+    OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
+
+train <- train %>%
+  mutate(
+  OverallQual = fct_relevel(as.factor(OverallQual), "Low Qual", "Med Qual", "High Qual"))
+
+test <- test %>%
+ select(Id,OverallQual,GrLivArea,YearBuilt,Neighborhood,MSZoning,LotFrontage)
+
+test <- test %>%
+  mutate(OverallQual = case_when(
+    OverallQual > 7 ~ "High Qual",
+    OverallQual < 4 ~ "Low Qual",
+    OverallQual > 3 & OverallQual < 8  ~ "Med Qual"))
+
+train <- train %>%
+  mutate(
+    log_saleprice = log(SalePrice),)
+
+train <- train %>%
+ mutate(log_avg_price = mean(log_saleprice))
+
+train <- train %>%
+  mutate(Mag_Price = case_when(
+    log_saleprice > log_avg_price ~ "High",
+    log_saleprice < log_avg_price ~ "Low"),
+    Mag_Price = fct_relevel(Mag_Price, "Low", "High"))
+
+sample_submission <- sample_submission %>%
+  mutate(
+    log_saleprice = log(SalePrice),)
+
+sample_submission <- sample_submission %>%
+ mutate(log_avg_price = mean(log_saleprice))
+
+sample_submission <- sample_submission %>%
+  mutate(Mag_Price = case_when(
+    log_saleprice > log_avg_price ~ "High",
+    log_saleprice < log_avg_price ~ "Low"),
+    Mag_Price = fct_relevel(Mag_Price, "Low", "High"))
 
 
 
@@ -31,48 +82,272 @@ library(tidyverse)
 
 ## Research Question
 
-Describe your research question here. Include why this question might be of interest. 
-
-To what extent do structural features (e.g., living area, material quality) versus locational features (neighbourhood) explain variation in house prices in Ames, Iowa?
+To what extent do House features (e.g., living area, overall quality) versus locational features (neighbourhood) explain variation in house prices in Ames, Iowa? Our aim with this project is to determine whether house features or location-based variables are better predictors of housing prices.
 
 
 
-## Data
+## About the data
 
-Briefly describe your dataset here - include a description of the key variables you will be investigating. 
-Include a citation for your data. 
-See http://libraryguides.vu.edu.au/c.php?g=386501&p=4347840 for guidance on proper citation for datasets. 
-If you got your data off the web, make sure to state the retrieval date.
+Our project used three data sets which were subsets of the Ames Housing Data, which explores variables ranging from internal and external housing factors. We aim to locate variable’s which have the greatest correlation with the housing prices.
 
+We cleaned the data using the tidyverse package and split the variables into category A being ‘Housing features’ involving variables OverallQuality, GrLivArea, YearBuilt and category B, being ‘Location Variables’, which includes the variables Neighborhood, LotFrontage and MSZoning.
 
+To strengthen the modelling process and address distributional challenges, two new engineered variables were introduced:
 
+log_saleprice: Natural log of SalePrice to better fit linear models
 
+Mag_Price: Binary classification of SalePrice, labelled each house as either “High” or “Low”
 
+We also recoded OverallQual into three descriptive quality categories (“Low”, “Med”, “High”) for clearer interpretation.
 
-## Findings
+```{r variable table, echo=FALSE}
+data.frame(
+  Variable = c(
+    # Group A — House Features
+    "OverallQual", "GrLivArea", "YearBuilt",
+    
+    # Group B — Location Features
+    "Neighborhood", "MSZoning", "LotFrontage",
+    "log_saleprice","Mag_Price"),
+  
+  Type = c(
+    # Group A
+    "Categorical",
+    "Numeric",
+    "Numeric",
+    
+    # Group B
+    "Categorical",
+    "Categorical",
+    "Numeric",
+    "Numeric",
+    "Categorical"
+  ),
+  
+  Description = c(
+    # Group A descriptions
+    "Reclassified overall finish and quality of the home",
+    "Living area in square feet",
+    "Year the house was originally built",
+    
+    # Group B descriptions
+    "Residential neighborhood where the home is located",
+    "Zoning classification for land use",
+    "Linear feet of street-connected property frontage",
+    "Natural log of SalePrice",
+    "Binary classification of SalePrice"
+  )
+) %>%
+  kable()
 
-The write-up of your project and findings go here. 
+```
 
-Think of this as the text of your presentation with some extra detail to cover what there was not time to discuss in the presentation. This might include any assumptions you made when doing your analysis, any limitations of the work you have done or any ideas you have for future work. Feel free to split this section into subsections to make it easier to read. 
+## Exploratory Analysis
 
-The length should be roughly 1,500 words. 
-If you want to use a word count addin, you can install this by copying and pasting the following into RStudio:
+To examine potential correlations between predictors and sale prices, scatter plots and box plots were constructed depending on variable type—continuous variables were plotted against log-transformed prices, whereas categorical variables used grouped boxplots.
 
-`devtools::install_github("benmarwick/wordcountaddin", type = "source", dependencies = TRUE)`
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold', out.width='50%'}
 
-You will then need to restart RStudio. Once you have done that, select the text you want to count the words of, go to Addins, and select the `Word count` addin.
-This addin counts words using two different algorithms, but the results should be similar and as long as you're in the ballpark of 1,500 words, you're good! 
-The addin will ignore code chunks and only count the words in prose. If you don't want to use the addin you can always copy and paste the text into Microsoft Word to do a Word Count!
+ggplot(train, aes(x = factor(OverallQual), y = log_saleprice)) +
+  geom_boxplot(fill = "#6AAEDF") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) by Overall Quality",
+    x = "Overall Quality",
+    y = "log(SalePrice)"
+  )
 
-You can also load your data here and present any analysis results / plots.
-Make sure to hide your code with  `echo = FALSE` unless the point you are trying to make is about the code itself, in which case you should show your code.
+ggplot(train, aes(x = GrLivArea, y = log_saleprice)) +
+  geom_point(alpha = 0.35) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) vs Living Area",
+    x = "GrLivArea (sq ft)",
+    y = "log(SalePrice)"
+  )
 
+ggplot(train, aes(x = YearBuilt, y = log_saleprice)) +
+  geom_point(alpha = 0.35) +
+  geom_smooth(method = "loess", se = FALSE, color = "darkgreen") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) vs Year Built",
+    x = "Year Built",
+    y = "log(SalePrice)"
+  )
 
+ggplot(train, aes(
+      x = reorder(Neighborhood, log_saleprice, FUN = median),
+      y = log_saleprice)) +
+  geom_boxplot(outlier.alpha = 0.2) +
+  coord_flip() +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) by Neighborhood",
+    x = "Neighborhood (ordered by price)",
+    y = "log(SalePrice)"
+  )
 
+ggplot(train, aes(x = MSZoning, y = log_saleprice)) +
+  geom_boxplot(fill = "#F9A65A") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) by Zoning Classification",
+    x = "MSZoning",
+    y = "log(SalePrice)"
+  )
 
+ggplot(train, aes(x = LotFrontage, y = log_saleprice)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  theme_minimal() +
+  labs(
+    title = "log(SalePrice) vs Lot Frontage",
+    x = "LotFrontage (linear feet)",
+    y = "log(SalePrice)"
+  )
+```
+
+Overall Quality exhibited one of the strongest relationships in the dataset. As the quality rating increases from 1 to 10, sale prices show a clear monotonic upward trend. This aligns with expectations—better materials, superior craftsmanship, and enhanced finishes typically yield higher market valuations.
+
+GrLivArea also demonstrated a pronounced positive linear relationship with sale price. Larger homes command higher market prices, and this variable is known to be one of the strongest predictors in the Ames dataset more broadly. The scatter plot showed tight clustering around an upward-sloping line, suggesting robust predictive potential and minimal noise among mid-range values.
+
+YearBuilt, however, presented a more complex pattern. When considering the entire range from late 1800s to 2000s, the relationship is nonlinear. A curved line of best fit indicates fluctuations in price for older homes; some homes built before the 1940s appear to command higher prices despite age, likely due to architectural charm or “vintage value.” But when focusing on homes built after the 1940s, a more consistent positive correlation emerges, indicating newer constructions tend to command higher prices due to modern materials and updated structural standards.
+
+Neighborhood, plotted by descending median price, displayed strong differences in central tendency. Some neighborhoods clearly command higher baseline prices, but high variability within each group complicates predictive power. Certain neighborhoods also had very few observations, introducing sparsity issues that potentially weaken logistic modelling unless dummy variables are carefully handled.
+
+LotFrontage showed a weak and noisy linear trend. While modest positive association exists, the spread is wide and the highest values appear to behave as outliers. The data also exhibited plateaus—points aligned horizontally—suggesting repeated house layouts or subdivisions with similar frontage measurements. This consistency reduces the variable’s ability to distinguish between high and low prices in a meaningful way.
+
+MSZoning, analysed through boxplots, showed distinct clusters of sale prices among residential zones (e.g., RL, RM, C, etc.). Although zoning categories demonstrate differences in median price ranges, many classes overlap substantially, limiting discriminatory power compared to Group A variables.
+
+## Modelling Approach
+
+Our dataset came with two different files train and test, so we did not have to do the split ourselves. Since the outcome variable Mag_Price is binary, logistic regression was selected as the predictive method for both Group A and Group B models.
+```{r}
+log_model <- logistic_reg() %>% set_engine("glm")
+```
+
+A key preprocessing step in both models was step_dummy, which converts categorical variables into dummy (one-hot) numeric indicators. This was particularly essential for Group B, which contains Neighborhood and MSZoning, both high-cardinality factors.
+
+```{r}
+rec_A <- recipe(
+  Mag_Price ~ 
+    GrLivArea + OverallQual + YearBuilt,
+  data = train
+) %>%
+  step_dummy(all_nominal_predictors())
+```
+
+Group B additionally required step_unknown, a safeguard against new or unseen factor levels appearing in the test set that were not present in the training set. This ensures model stability and prevents errors during prediction.
+
+```{r}
+rec_B <- recipe(
+  Mag_Price ~ 
+    Neighborhood + MSZoning + LotFrontage,
+  data = train
+) %>%
+  step_unknown(all_nominal_predictors()) %>%
+  step_dummy(all_nominal_predictors())
+```
+
+We then created a model workflow for both groups (group A is shown):
+```{r}
+wf_A <- workflow() %>%
+  add_model(log_model) %>%
+  add_recipe(rec_A)
+```
+
+And fit the model:
+```{r}
+fit_A <- wf_A %>%
+  fit(data = train)
+```
+
+## Model Evaluation
+
+Both Group A and Group B achieved AUC scores slightly above 0.5, indicating predictive performance marginally better than random guessing. Such outcomes reflect moderate predictive usefulness, but highlight limitations in linear logistic modelling when applied to complex datasets with nonlinear interactions and sociogeographic influences.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+rec_A <- recipe(
+  Mag_Price ~ 
+    GrLivArea + OverallQual + YearBuilt,
+  data = train
+) %>%
+  step_dummy(all_nominal_predictors())
+
+wf_A <- workflow() %>%
+  add_model(log_model) %>%
+  add_recipe(rec_A)
+rec_B <- recipe(
+  Mag_Price ~ 
+    Neighborhood + MSZoning + LotFrontage,
+  data = train
+) %>%
+  step_unknown(all_nominal_predictors()) %>%
+  step_dummy(all_nominal_predictors())
+
+wf_B <- workflow() %>%
+  add_model(log_model) %>%
+  add_recipe(rec_B)
+fit_A <- wf_A %>%
+  fit(data = train)
+
+pred_A_test <- predict(fit_A, new_data = test, type = "prob") %>%
+  bind_cols(test %>% select(Id))
+
+fit_B <- wf_B %>%
+  fit(data = train)
+
+pred_B_test <- predict(fit_B, new_data = test, type = "prob") %>%
+  bind_cols(test %>% select(Id))
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+truth_test <- sample_submission %>%
+  select(Id, Mag_Price)
+
+roc_data_A <- pred_A_test %>%
+  inner_join(truth_test, by = "Id")
+
+roc_data_B <- pred_B_test %>%
+  inner_join(truth_test, by = "Id")
+
+# Group A ROC & AUC
+roc_A <- roc_data_A %>%
+  roc_curve(truth = Mag_Price, .pred_High, event_level = "second")
+
+auc_A <- roc_data_A %>%
+  roc_auc(truth = Mag_Price, .pred_High, event_level = "second")
+
+# Group B ROC & AUC
+roc_B <- roc_data_B %>%
+  roc_curve(truth = Mag_Price, .pred_High, event_level = "second")
+
+auc_B <- roc_data_B %>%
+  roc_auc(truth = Mag_Price, .pred_High, event_level = "second")
+
+```
+```{r warning=FALSE, echo=FALSE, out.width="100%"}
+bind_rows(
+  roc_A %>% mutate(group = "Group A (house features)"),
+  roc_B %>% mutate(group = "Group B (location)")
+) %>%
+  ggplot(aes(x = 1 - specificity, y = sensitivity, colour = group)) +
+  geom_path() +
+  geom_abline(linetype = "dashed") +
+  coord_equal() +
+  theme_minimal() +
+  labs(
+    title = "ROC curves: Group A vs Group B",
+    x = "1 - Specificity (False Positive Rate)",
+    y = "Sensitivity (True Positive Rate)",
+    colour = "Model"
+  )
+```
+
+Although the difference between AUC scores was small, Group A consistently achieved a higher AUC than Group B, suggesting housing features contain slightly stronger predictive information for binary classification of prices. However, the gap was narrow enough that we could not confidently claim housing features are definitively superior predictors—only that, numerically, they seem marginally more effective.
 
 ## References
-
-List any references here. You should, at a minimum, list your data source.
-
-
+"House Prices - Advanced Regression Techniques." Link - https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/overview
