@@ -1,6 +1,6 @@
 ---
 title: "Predicting House Prices in Ames,Iowa"
-author: "by Data Science Duo: Terry and Rithvic"
+author: "by final project Duo: Terry and Rithvic"
 date: "`r Sys.Date()`"
 output: html_document
 ---
